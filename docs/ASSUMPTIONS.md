@@ -55,6 +55,19 @@ Format per investigation protocol: **Observed / Likely / Unknown / Decision / Re
 - **Decision:** 128-bit capability token in URL, read-only, rate-limited.
 - **Reason:** matches the marketed simplicity; secure enough given read-only scope.
 
+## 8. Free-trial lifecycle (evidence update, 2026-09-30)
+
+- **Observed:** the account holder reports a 14-day free trial at signup.
+  This contradicts the public pricing FAQ ("no free trial"), which is
+  apparently stale marketing copy.
+- **Likely:** real lifecycle is SIGNUP → TRIALING (14d) → plan + payment →
+  ACTIVE, with an expired-trial gate back to the plan chooser.
+- **Decision:** billing remains out of scope (KNOWN_LIMITATIONS #2), but the
+  entitlement design must include a TRIALING subscription state when billing
+  lands. Trial UX (gates, banners, countdown) to be replicated from
+  authenticated-surface evidence provided by the account holder.
+- **Reason:** firsthand account-holder evidence outranks stale public FAQ.
+
 ## Open unknowns (not resolvable without target access — intentionally not pursued)
 
 - Exact authenticated routes/labels of the target app.

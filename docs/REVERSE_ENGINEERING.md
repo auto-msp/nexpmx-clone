@@ -28,6 +28,7 @@ A = directly observed · B = strongly inferred · C = reasonable assumption · D
 | 11 | Dashboard/module internals, exact IA of app | D | not accessed (by policy) |
 | 12 | Target DB, infra, session details | D | unknowable publicly |
 | 13 | robots.txt & sitemap.xml absent on target | A | 404 responses |
+| 14 | **14-day free trial exists** per account holder (2026-09-30); contradicts the public pricing FAQ's "no free trial" claim | B (user-provided firsthand) | authorized account holder report |
 
 ## Application to this repo
 
