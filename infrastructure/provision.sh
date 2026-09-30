@@ -39,6 +39,9 @@ if ! command -v node >/dev/null 2>&1 || [[ "$(node -v | cut -dv -f2 | cut -d. -f
   apt-get install -y -qq nodejs >/dev/null
 fi
 
+echo "==> 1c/8 Document storage directory"
+install -d -o www-data -g www-data -m 750 /var/lib/bizmemory/documents
+
 echo "==> 2/8 PostgreSQL role + database"
 sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 \
   || sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';"

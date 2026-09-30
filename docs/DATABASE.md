@@ -12,7 +12,7 @@ mutations re-verify ownership of any client-supplied foreign key.
 | Client / Project / Task | Observed product vocabulary ("clients, projects, files") | B |
 | Invoice (status lifecycle) | Observed "GST invoicing, UPI payments" (invoicing inferred generic) | B |
 | Decision | Observed "decisions" as first-class memory objects | B |
-| Document | Observed "Document Hub / files"; upload flow not implemented yet | B (entity), D (impl) |
+| Document | Observed "Document Hub / files"; upload/download implemented 2026-09-30 (original field naming) | B (entity), B (impl) |
 | AI credits / UsageEvent | Observed per-plan credit allowances | B |
 | ApiKey | Engineering addition (not observed on target) | — |
 | AuditLog | Engineering addition (required by our security baseline) | — |
@@ -31,7 +31,9 @@ User 1─* Membership *─1 Organization 1─* Client 1─* Project 1─* Task
                           ├─* AuditLog
                           ├─* UsageEvent
                           ├─* ApiKey
-                          └─* Automation
+                          ├─* Automation
+                          ├─* Invitation
+                          └─1 Subscription
 User 1─* Session / Account (Auth.js)
 User 1─* Notification
 Comment: polymorphic-lite — nullable FKs to Decision | Project | Client
@@ -42,9 +44,25 @@ Comment: polymorphic-lite — nullable FKs to Decision | Project | Client
 - `Organization.slug` unique; `Client.portalToken` unique (capability).
 - `Invoice (orgId, number)` unique — duplicate invoice numbers rejected (P2002).
 - `ApiKey.keyHash` unique — lookup by SHA-256; raw key never stored.
+- `Invitation.tokenHash` unique — same SHA-256 pattern as API keys; invite
+  links are single-use capabilities.
+- `Subscription.orgId` unique — exactly one lifecycle row per org.
+- `Document.storageKey` unique — one disk object per row; keys are random,
+  org-scoped, and never user-derived.
 - Hot paths indexed: `(Client orgId,status)`, `(Project orgId,status)`,
   `(Task orgId,projectId,status)`, `(Invoice orgId,status)`,
-  `(Decision orgId,createdAt)`, `(AuditLog orgId,createdAt)`.
+  `(Decision orgId,createdAt)`, `(AuditLog orgId,createdAt)`,
+  `(Document orgId,createdAt)`, `(Invitation orgId,status)`,
+  `(Subscription orgId,state)`.
+
+## Blob storage
+
+Document bytes live outside Postgres, under `DOCUMENT_STORAGE_DIR`
+(default `/var/lib/bizmemory/documents`), laid out as
+`<orgId>/<xx>/<yy>/<random32hex>`. The DB stores metadata only (mime, size,
+SHA-256, original name). Backups: `infrastructure/backup.sh` tars the
+directory alongside the nightly dump; `infrastructure/restore.sh` untars the
+matching archive.
 
 ## Migrations
 

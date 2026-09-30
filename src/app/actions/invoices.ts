@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db";
 import { requireApiContext } from "@/lib/api";
 import { requirePermission } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
+import { canTransition, nextActionsFor } from "@/lib/invoice-state";
+import { requireEntitlement } from "@/lib/entitlements";
 
 const createInvoiceSchema = z.object({
   clientId: z.string().trim().min(1, "Client is required"),
@@ -19,17 +21,13 @@ const createInvoiceSchema = z.object({
   dueAt: z.string().trim().optional(),
 });
 
-// Explicit state machine — invalid transitions are rejected (BUSINESS_RULES.md).
-const TRANSITIONS: Record<string, string[]> = {
-  DRAFT: ["SENT"],
-  SENT: ["PAID", "OVERDUE"],
-  PAID: [],
-  OVERDUE: ["PAID"],
-};
+// Explicit state machine — invalid transitions are rejected
+// (BUSINESS_RULES.md RULE-INV-01); the table lives in lib/invoice-state.ts.
 
 export async function createInvoice(formData: FormData) {
   const ctx = await requireApiContext();
   requirePermission(ctx.role, "invoice:write");
+  await requireEntitlement(ctx.orgId);
 
   const parsed = createInvoiceSchema.safeParse({
     clientId: formData.get("clientId"),
@@ -82,6 +80,7 @@ export async function createInvoice(formData: FormData) {
 export async function transitionInvoice(formData: FormData) {
   const ctx = await requireApiContext();
   requirePermission(ctx.role, "invoice:write");
+  await requireEntitlement(ctx.orgId);
 
   const id = String(formData.get("id") ?? "");
   const next = String(formData.get("status") ?? "");
@@ -89,7 +88,7 @@ export async function transitionInvoice(formData: FormData) {
   const invoice = await prisma.invoice.findFirst({ where: { id, orgId: ctx.orgId } });
   if (!invoice) throw new Error("Invoice not found");
 
-  if (!TRANSITIONS[invoice.status]?.includes(next)) {
+  if (!canTransition(invoice.status, next)) {
     throw new Error(`Cannot move invoice from ${invoice.status} to ${next}`);
   }
 

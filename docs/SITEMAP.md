@@ -38,12 +38,16 @@ standard SaaS architecture — see `ASSUMPTIONS.md`.
 | `/invoices` | Dynamic | Session | Invoice lifecycle | Inferred (B) |
 | `/decisions` | Dynamic | Session | Decision log | Inferred (B) |
 | `/assistant` | Dynamic | Session | Grounded AI Q&A + credits | Inferred (B) |
-| `/settings` | Dynamic | Session | Workspace, API keys, audit view | Assumed (C) |
-| `/portal/[token]` | Dynamic | Portal token | Read-only client portal | Inferred (B) |
+| `/settings` | Dynamic | Session | Workspace, team, API keys, audit view | Assumed (C) |
+| `/documents` | Dynamic | Session | Document Hub: upload/download, storage meter | Inferred (B) |
+| `/invite/[token]` | Dynamic | Invite token | Invitation acceptance (seat-checked) | Engineering addition |
+| `/portal/[token]` | Dynamic | Portal token | Read-only client portal + documents | Inferred (B) |
+| `/portal/[token]/download/[documentId]` | Handler | Portal token | Signed portal download | Engineering addition |
 | `/api/auth/[...nextauth]` | Handler | Public | Auth.js endpoints | Standard |
 | `/api/health` | Handler | Public | Liveness + DB readiness | Engineering addition |
 | `/api/v1/clients` | Handler | API key | List/create clients | Engineering addition |
 | `/api/v1/invoices` | Handler | API key | List invoices | Engineering addition |
+| `/api/download/[documentId]` | Handler | Session + signed token | App download (5-min HMAC) | Engineering addition |
 | `/robots.txt`, `/sitemap.xml` | Generated | Public | SEO | Engineering addition |
 
 ## Auth-gate behavior

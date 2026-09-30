@@ -24,6 +24,7 @@ const PUBLIC_PATHS = new Set([
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith("/portal/")) return true; // token-authenticated
+  if (pathname.startsWith("/invite/")) return true; // capability token; page re-checks session
   return false;
 }
 

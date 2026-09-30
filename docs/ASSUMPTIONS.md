@@ -62,11 +62,25 @@ Format per investigation protocol: **Observed / Likely / Unknown / Decision / Re
   apparently stale marketing copy.
 - **Likely:** real lifecycle is SIGNUP → TRIALING (14d) → plan + payment →
   ACTIVE, with an expired-trial gate back to the plan chooser.
-- **Decision:** billing remains out of scope (KNOWN_LIMITATIONS #2), but the
-  entitlement design must include a TRIALING subscription state when billing
-  lands. Trial UX (gates, banners, countdown) to be replicated from
-  authenticated-surface evidence provided by the account holder.
+- **Decision:** IMPLEMENTED 2026-09-30 (payment rail itself remains out of
+  scope, KNOWN_LIMITATIONS #2): `Subscription` model with TRIALING state,
+  14-day bootstrap on first app entry, sidebar countdown + banner, and an
+  expired-trial gate that replaces app routes with the plan chooser and
+  refuses server mutations (`requireEntitlement`). Exact target trial UX
+  (banner placement, wording, grace-period behavior) still unverified —
+  update from authenticated-surface evidence when the account holder
+  provides captures (EVIDENCE_CHECKLIST item 11).
 - **Reason:** firsthand account-holder evidence outranks stale public FAQ.
+
+## 9. Document storage backend (engineering decision, 2026-09-30)
+
+- **Unknown:** target's storage architecture (object storage vs DB blobs).
+- **Decision:** local disk under `DOCUMENT_STORAGE_DIR` with an S3-compatible
+  adapter seam (`src/lib/storage.ts`); random org-scoped keys; 25 MB/file;
+  per-plan total-storage caps; HMAC-signed short-lived download URLs.
+- **Reason:** zero-dependency default that fits the single-node deployment;
+  the interface isolates the eventual S3 swap to one file. Download links are
+  our own security design — target behavior unobserved and not claimed.
 
 ## Open unknowns (not resolvable without target access — intentionally not pursued)
 

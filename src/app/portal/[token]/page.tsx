@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { rateLimit, fail } from "@/lib/api";
 import { formatInr } from "@/lib/plans";
+import { signDownloadToken } from "@/lib/documents";
 import { Badge, Card, EmptyState } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default async function ClientPortalPage({
         take: 10,
       },
       invoices: { orderBy: { createdAt: "desc" }, take: 10 },
+      documents: { orderBy: { createdAt: "desc" }, take: 10 },
     },
   });
 
@@ -84,6 +86,41 @@ export default async function ClientPortalPage({
                   {p._count.tasks} tasks in scope · updated{" "}
                   {p.updatedAt.toISOString().slice(0, 10)}
                 </p>
+              </Card>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section aria-labelledby="portal-documents" className="mt-10">
+        <h2 id="portal-documents" className="text-lg font-semibold">Your documents</h2>
+        <div className="mt-4 grid gap-4">
+          {client.documents.length === 0 ? (
+            <EmptyState title="No documents shared yet" />
+          ) : (
+            client.documents.map((d) => (
+              <Card key={d.id}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-medium">{d.title}</h3>
+                    <p className="text-xs text-muted">
+                      Shared {d.createdAt.toISOString().slice(0, 10)}
+                    </p>
+                  </div>
+                  <a
+                    href={`/api/portal/download/${d.id}/${token}?t=${encodeURIComponent(
+                      signDownloadToken({
+                        documentId: d.id,
+                        orgId: client.orgId,
+                        portalToken: token,
+                        expiresAt: Date.now() + 5 * 60 * 1000,
+                      }),
+                    )}`}
+                    className="rounded-[var(--radius-control)] border border-border px-3 py-1.5 text-sm text-muted hover:border-brand hover:text-text"
+                  >
+                    Download
+                  </a>
+                </div>
               </Card>
             ))
           )}

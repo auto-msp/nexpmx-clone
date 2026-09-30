@@ -138,6 +138,14 @@ sudo systemctl restart bizmemory
 
 ## Backups
 
+Documents uploaded to the Document Hub live under `DOCUMENT_STORAGE_DIR`
+(default `/var/lib/bizmemory/documents`), outside Postgres.
+`infrastructure/backup.sh` archives that directory as
+`bizmemory-documents-<date>.tar.gz` next to the nightly DB dump, and
+`infrastructure/restore.sh` restores the matching archive automatically.
+Provisioning creates the directory with `750 www-data:www-data` ownership,
+and the systemd unit's `ReadWritePaths` includes it.
+
 ```bash
 # /etc/cron.d/bizmemory-backup — nightly dump, retained 14 days
 0 2 * * * postgres pg_dump -Fc bizmemory > /var/backups/bizmemory-$(date +\%F).dump

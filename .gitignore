@@ -19,3 +19,7 @@ dist
 coverage
 .turbo
 *.tsbuildinfo
+
+# uploaded documents (never in git)
+/data
+/uploads

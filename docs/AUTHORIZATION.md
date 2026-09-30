@@ -38,7 +38,10 @@ Enforced in the action layer, server-side:
 
 - Active-client cap (Starter: 10) → error with upgrade hint.
 - AI credits per cycle → HTTP 402 when exhausted.
-- Seat/storage caps → enforced at invite/upload time (seats at invite time is
-  pending — see KNOWN_LIMITATIONS.md).
+- Storage caps → enforced before bytes are written (25 MB/file + plan total).
+- Seats → enforced at invite AND accept time (members + live pending invites
+  vs `plan.maxSeats`).
+- Trial/subscription → expired trials, PAST_DUE and CANCELED orgs are blocked
+  from app pages (layout gate) and server mutations (`requireEntitlement`).
 
 See BUSINESS_RULES.md for rule IDs and evidence.

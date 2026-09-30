@@ -24,4 +24,13 @@ fi
 
 find "$BACKUP_DIR" -name 'bizmemory-*.dump' -mtime "+$RETENTION_DAYS" -delete
 
+# Documents live on disk (DOCUMENT_STORAGE_DIR), not in the DB — back them up
+# alongside the dump so restores are complete.
+DOC_DIR="${DOCUMENT_STORAGE_DIR:-/var/lib/bizmemory/documents}"
+DOC_OUT="$BACKUP_DIR/bizmemory-documents-$STAMP.tar.gz"
+if [[ -d "$DOC_DIR" ]]; then
+  tar -czf "$DOC_OUT" -C "$(dirname "$DOC_DIR")" "$(basename "$DOC_DIR")"
+  find "$BACKUP_DIR" -name 'bizmemory-documents-*.tar.gz' -mtime "+$RETENTION_DAYS" -delete
+fi
+
 echo "backup OK: $OUT ($(du -h "$OUT" | cut -f1))"

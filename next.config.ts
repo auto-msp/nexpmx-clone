@@ -33,6 +33,12 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  experimental: {
+    // Document Hub uploads: server actions carry the file body. 30 MB gives
+    // headroom above the 25 MB MAX_UPLOAD_BYTES application cap so users get
+    // the app's validation error, not a transport-level rejection.
+    serverActions: { bodySizeLimit: "30mb" },
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

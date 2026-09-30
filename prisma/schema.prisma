@@ -14,22 +14,22 @@ datasource db {
 // ─── Identity ────────────────────────────────────────────────────────────────
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String         @id @default(cuid())
+  email         String         @unique
   name          String?
   image         String?
-  googleId      String?  @unique
-  role          Role     @default(MEMBER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  memberships    Membership[]
-  accounts       Account[]
-  sessions       Session[]
-  decisions      Decision[]
-  comments       Comment[]
-  notifications  Notification[]
-  auditLogs      AuditLog[]
+  googleId      String?        @unique
+  role          Role           @default(MEMBER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  memberships   Membership[]
+  accounts      Account[]
+  sessions      Session[]
+  decisions     Decision[]
+  comments      Comment[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  documents     Document[]
 
   @@index([email])
 }
@@ -95,16 +95,18 @@ model Organization {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  memberships Membership[]
-  clients     Client[]
-  projects    Project[]
-  invoices    Invoice[]
-  decisions   Decision[]
-  documents   Document[]
-  automations Automation[]
-  auditLogs   AuditLog[]
-  usageEvents UsageEvent[]
-  apiKeys     ApiKey[]
+  memberships  Membership[]
+  clients      Client[]
+  projects     Project[]
+  invoices     Invoice[]
+  decisions    Decision[]
+  documents    Document[]
+  automations  Automation[]
+  auditLogs    AuditLog[]
+  usageEvents  UsageEvent[]
+  apiKeys      ApiKey[]
+  invitations  Invitation[]
+  subscription Subscription?
 }
 
 enum Plan {
@@ -114,12 +116,12 @@ enum Plan {
 }
 
 model Membership {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   userId    String
   orgId     String
-  role      Role     @default(MEMBER)
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role         @default(MEMBER)
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([userId, orgId])
@@ -129,17 +131,17 @@ model Membership {
 // ─── Core business memory ────────────────────────────────────────────────────
 
 model Client {
-  id        String   @id @default(cuid())
-  orgId     String
-  name      String
-  company   String?
-  email     String?
-  phone     String?
-  status    ClientStatus @default(ACTIVE)
-  portalToken String @unique @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id          String       @id @default(cuid())
+  orgId       String
+  name        String
+  company     String?
+  email       String?
+  phone       String?
+  status      ClientStatus @default(ACTIVE)
+  portalToken String       @unique @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   projects  Project[]
   invoices  Invoice[]
@@ -156,15 +158,15 @@ enum ClientStatus {
 }
 
 model Project {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   orgId     String
   clientId  String?
   name      String
   status    ProjectStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  org       Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client    Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
   tasks     Task[]
   documents Document[]
@@ -182,16 +184,16 @@ enum ProjectStatus {
 }
 
 model Task {
-  id        String   @id @default(cuid())
-  orgId     String
-  projectId String
-  title     String
-  status    TaskStatus @default(TODO)
+  id         String     @id @default(cuid())
+  orgId      String
+  projectId  String
+  title      String
+  status     TaskStatus @default(TODO)
   assigneeId String?
-  dueDate   DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dueDate    DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([orgId, projectId, status])
 }
@@ -203,19 +205,19 @@ enum TaskStatus {
 }
 
 model Invoice {
-  id         String   @id @default(cuid())
-  orgId      String
-  clientId   String
-  number     String
-  amountMinor Int     // minor units (paise) — never store money as float
-  currency   String   @default("INR")
-  status     InvoiceStatus @default(DRAFT)
-  issuedAt   DateTime?
-  dueAt      DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  client     Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  id          String        @id @default(cuid())
+  orgId       String
+  clientId    String
+  number      String
+  amountMinor Int // minor units (paise) — never store money as float
+  currency    String        @default("INR")
+  status      InvoiceStatus @default(DRAFT)
+  issuedAt    DateTime?
+  dueAt       DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
 
   @@unique([orgId, number])
   @@index([orgId, status])
@@ -229,125 +231,185 @@ enum InvoiceStatus {
 }
 
 model Decision {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   orgId     String
   authorId  String
   projectId String?
   clientId  String?
   title     String
   body      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  author    User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  project   Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client    Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
   comments  Comment[]
 
   @@index([orgId, createdAt])
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  orgId     String
-  uploaderId String
-  projectId String?
-  clientId  String?
-  title     String
-  mimeType  String
-  sizeBytes Int
-  storageKey String  // object-storage key; never the raw URL
-  createdAt DateTime @default(now())
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  id           String       @id @default(cuid())
+  orgId        String
+  uploaderId   String
+  projectId    String?
+  clientId     String?
+  title        String
+  mimeType     String
+  sizeBytes    Int
+  storageKey   String       @unique // object-storage key; never the raw URL
+  originalName String // client-supplied filename; stored but never used to build paths
+  sha256       String // integrity + future dedup (NOT the encryption key)
+  createdAt    DateTime     @default(now())
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  uploader     User         @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client       Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
   @@index([orgId, createdAt])
+  @@index([orgId, clientId])
+  @@index([uploaderId])
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  orgId     String
-  authorId  String
-  body      String
+  id         String    @id @default(cuid())
+  orgId      String
+  authorId   String
+  body       String
   decisionId String?
-  projectId String?
-  clientId  String?
-  createdAt DateTime @default(now())
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  decision  Decision? @relation(fields: [decisionId], references: [id], onDelete: Cascade)
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId  String?
+  clientId   String?
+  createdAt  DateTime  @default(now())
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  decision   Decision? @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client     Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([orgId, decisionId])
   @@index([orgId, projectId])
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  orgId     String
-  type      String
-  payloadJson String @default("{}")
-  readAt    DateTime?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String
+  orgId       String
+  type        String
+  payloadJson String    @default("{}")
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
 }
 
 model AuditLog {
-  id       String   @id @default(cuid())
-  orgId    String
-  actorId  String?
-  action   String
-  entity   String
-  entityId String?
-  metaJson String  @default("{}")
-  ip       String?
-  createdAt DateTime @default(now())
-  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  actor    User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  id        String       @id @default(cuid())
+  orgId     String
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metaJson  String       @default("{}")
+  ip        String?
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor     User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([orgId, createdAt])
   @@index([entity, entityId])
 }
 
 model UsageEvent {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   orgId     String
-  kind      String   // e.g. "ai.search", "ai.generate"
-  credits   Int      @default(0)
-  createdAt DateTime @default(now())
+  kind      String // e.g. "ai.search", "ai.generate"
+  credits   Int          @default(0)
+  createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId, kind, createdAt])
 }
 
 model ApiKey {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   orgId     String
   name      String
   prefix    String
-  keyHash   String   @unique // SHA-256 of the raw key; raw key is never stored
+  keyHash   String       @unique // SHA-256 of the raw key; raw key is never stored
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId])
 }
 
 model Automation {
-  id        String   @id @default(cuid())
-  orgId     String
-  name      String
-  enabled   Boolean  @default(false)
-  trigger   String   // typed keys: invoice.created, task.done, decision.created
-  action    String   // typed keys: notify, create_task
-  configJson String  @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id         String       @id @default(cuid())
+  orgId      String
+  name       String
+  enabled    Boolean      @default(false)
+  trigger    String // typed keys: invoice.created, task.done, decision.created
+  action     String // typed keys: notify, create_task
+  configJson String       @default("{}")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId])
+}
+
+// ─── Billing lifecycle ───────────────────────────────────────────────────────
+// TRIALING state is evidence-backed (account-holder report of a 14-day trial
+// at signup, docs/ASSUMPTIONS.md §8). The checkout/payment steps remain out
+// of scope (KNOWN_LIMITATIONS #2): trials start automatically and plans can
+// still be set manually until a payment rail lands.
+
+enum SubscriptionState {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model Subscription {
+  id               String            @id @default(cuid())
+  orgId            String            @unique
+  state            SubscriptionState @default(TRIALING)
+  plan             Plan
+  trialEndsAt      DateTime? // set at TRIALING creation; null for non-trial states
+  currentPeriodEnd DateTime? // when billing lands; null until payment rail exists
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  org              Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, state])
+}
+
+// ─── Team invitations ────────────────────────────────────────────────────────
+// Single-use capability tokens, hashed at rest like API keys (raw token
+// survives only in the invite link, which is emailed out-of-band).
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model Invitation {
+  id         String           @id @default(cuid())
+  orgId      String
+  email      String
+  role       Role             @default(MEMBER)
+  tokenHash  String           @unique
+  status     InvitationStatus @default(PENDING)
+  invitedBy  String
+  expiresAt  DateTime
+  createdAt  DateTime         @default(now())
+  acceptedAt DateTime?
+  org        Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, status])
+  @@index([email])
 }

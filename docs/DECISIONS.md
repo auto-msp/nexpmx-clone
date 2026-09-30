@@ -68,3 +68,37 @@
 
 - **Decision:** `amountMinor` BigInt-safe ints (paise).
 - **Reason:** floats corrupt accounting; formatting happens at the edge.
+
+## ADR-014 — Document storage: local disk with S3-compatible seam
+
+- **Context:** Document Hub (KNOWN_LIMITATIONS #1) needed a storage backend.
+- **Alternatives:** S3/R2 direct, database BYTEA, filesystem-per-org.
+- **Decision:** local disk under `DOCUMENT_STORAGE_DIR` behind a
+  `StorageAdapter` interface; keys are `<orgId>/<2>/<2>/<random-128-bit>`,
+  never user-derived; DB stores metadata only.
+- **Reason:** zero new dependencies, no egress cost, fits the single-node
+  deployment; the adapter isolates an S3 swap to one file. 25 MB/file cap
+  keeps worst-case memory bounded until streaming lands.
+
+## ADR-015 — Download links: HMAC capability, not streaming-auth-only
+
+- **Alternatives:** pure session-gated route, presigned S3 URLs, long-lived
+  tokens.
+- **Decision:** page-rendered HMAC-SHA256 tokens binding documentId + org
+  (+ portal token) with a 5-minute TTL, verified constant-time; the route
+  still re-checks session and org scope.
+- **Reason:** links expire if shared, browsers/curl cannot replay them
+  later, and the double check (signature + tenancy) means neither layer is a
+  single point of failure. Presigned URLs will replace ours per-backend when
+  S3 lands.
+
+## ADR-016 — Trial: Subscription row with TRIALING bootstrap
+
+- **Observed:** account holder confirms a 14-day trial at signup
+  (ASSUMPTIONS.md §8).
+- **Decision:** one `Subscription` row per org, lazily created as TRIALING
+  with `trialEndsAt = now + 14d` on first app entry; expiry gates pages
+  (layout) and mutations (`requireEntitlement`); manual plan activation until
+  billing lands.
+- **Reason:** evidence-backed lifecycle without inventing checkout; the
+  state machine (TRIALING/ACTIVE/PAST_DUE/CANCELED) is billing-ready.

@@ -15,7 +15,7 @@ RestartSec=3
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/bizmemory/.next /opt/bizmemory/.prisma /opt/bizmemory/node_modules/.prisma
+ReadWritePaths=/opt/bizmemory/.next /opt/bizmemory/.prisma /opt/bizmemory/node_modules/.prisma /var/lib/bizmemory/documents
 PrivateTmp=true
 
 [Install]
