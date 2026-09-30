@@ -5,7 +5,6 @@ import { hashToken } from "@/lib/tenancy";
 import { planOf } from "@/lib/plans";
 import { audit } from "@/lib/audit";
 import { Badge, ButtonLink, Card } from "@/components/ui";
-import { seatsInUse } from "@/lib/seats";
 
 export const metadata: Metadata = { title: "Join your team", robots: { index: false } };
 
@@ -58,27 +57,11 @@ export default async function InvitePage({
 
   const orgId = invite.org.id;
 
-  // Seat re-check at accept time — pending invites may have consumed the
-  // last seat between invite creation and acceptance.
   const org = await prisma.organization.findUnique({
     where: { id: orgId },
     select: { plan: true },
   });
   const plan = planOf(org?.plan);
-  if (plan.maxSeats !== null) {
-    const used = await seatsInUse(orgId);
-    if (used >= plan.maxSeats) {
-      return (
-        <InviteFrame>
-          <h1 className="text-xl font-semibold">No seats left</h1>
-          <p className="mt-3 text-sm text-muted">
-            The {plan.name} plan allows {plan.maxSeats} seats and they are all in
-            use. Ask an admin to free a seat or upgrade the plan.
-          </p>
-        </InviteFrame>
-      );
-    }
-  }
 
   // Already a member? Consume the invite and confirm.
   const existingMembership = await prisma.membership.findFirst({
@@ -100,15 +83,56 @@ export default async function InvitePage({
     );
   }
 
-  await prisma.$transaction([
-    prisma.membership.create({
-      data: { userId, orgId, role: invite.role },
-    }),
-    prisma.invitation.update({
-      where: { id: invite.id },
-      data: { status: "ACCEPTED", acceptedAt: new Date() },
-    }),
-  ]);
+  // Accept path: seat re-check (RULE-ENT-05) and the membership insert must
+  // be one serializable transaction, or two concurrent acceptances of the
+  // last seat both pass the count check (audit F4). Bounded retry on
+  // serialization conflicts — the second pass re-checks on fresh data.
+  const acceptAttempt = async (): Promise<boolean> => {
+    return prisma.$transaction(
+      async (tx) => {
+        if (plan.maxSeats !== null) {
+          const [used, pending] = await Promise.all([
+            tx.membership.count({ where: { orgId } }),
+            tx.invitation.count({
+              where: { orgId, status: "PENDING", expiresAt: { gt: new Date() } },
+            }),
+          ]);
+          if (used + pending >= plan.maxSeats) {
+            return false; // out of seats — render the refusal below
+          }
+        }
+        await tx.membership.create({
+          data: { userId, orgId, role: invite.role },
+        });
+        await tx.invitation.update({
+          where: { id: invite.id },
+          data: { status: "ACCEPTED", acceptedAt: new Date() },
+        });
+        return true;
+      },
+      { isolationLevel: "Serializable" },
+    );
+  };
+
+  let joined = false;
+  try {
+    joined = await acceptAttempt();
+  } catch (err) {
+    if ((err as { code?: string })?.code !== "P2034") throw err;
+    joined = await acceptAttempt();
+  }
+
+  if (!joined) {
+    return (
+      <InviteFrame>
+        <h1 className="text-xl font-semibold">No seats left</h1>
+        <p className="mt-3 text-sm text-muted">
+          The {plan.name} plan allows {plan.maxSeats} seats and they are all in
+          use. Ask an admin to free a seat or upgrade the plan.
+        </p>
+      </InviteFrame>
+    );
+  }
 
   await audit({
     orgId,

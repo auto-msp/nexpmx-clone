@@ -10,7 +10,6 @@ import { audit } from "@/lib/audit";
 import { requireEntitlement } from "@/lib/entitlements";
 import { planOf } from "@/lib/plans";
 import { hashToken } from "@/lib/tenancy";
-import { seatsInUse } from "@/lib/seats";
 import { randomBytes } from "node:crypto";
 
 /**
@@ -22,8 +21,10 @@ import { randomBytes } from "node:crypto";
  * lands — see KNOWN_LIMITATIONS).
  *
  * Seat enforcement happens at BOTH ends (BUSINESS_RULES RULE-ENT-05):
- * - invite time: pending invites + accepted members cannot exceed maxSeats
+ * - invite time: count + insert inside one serializable transaction so
+ *   concurrent invites cannot both consume "one seat left" (audit F4)
  * - accept time: re-counted transactionally before the membership insert
+ *   (src/app/invite/[token]/page.tsx)
  */
 
 const INVITE_TTL_DAYS = 7;
@@ -38,7 +39,11 @@ const inviteSchema = z.object({
   role: z.enum(["MEMBER", "MANAGER", "ADMIN"]),
 });
 
-
+/** Retry hint from Prisma when a serializable transaction conflicts. */
+function isSerializationError(err: unknown): boolean {
+  const code = (err as { code?: string })?.code;
+  return code === "P2034"; // transaction conflict / write skew
+}
 
 export async function inviteMemberAction(formData: FormData): Promise<void> {
   const ctx = await requireApiContext();
@@ -54,61 +59,89 @@ export async function inviteMemberAction(formData: FormData): Promise<void> {
   }
   const { email, role } = parsed.data;
 
-  // Seat cap at invite time (plan.maxSeats; null = unlimited).
   const org = await prisma.organization.findUnique({
     where: { id: ctx.orgId },
     select: { plan: true },
   });
   const plan = planOf(org?.plan);
-  if (plan.maxSeats !== null) {
-    const used = await seatsInUse(ctx.orgId);
-    if (used >= plan.maxSeats) {
-      throw new Error(
-        `Your ${plan.name} plan allows ${plan.maxSeats} seats (${used} already in use). Upgrade to invite more teammates.`,
-      );
-    }
-  }
-
-  // Idempotent-ish: an existing live invite for the same email is refreshed
-  // instead of piling up duplicates.
-  const existing = await prisma.invitation.findFirst({
-    where: {
-      orgId: ctx.orgId,
-      email,
-      status: "PENDING",
-      expiresAt: { gt: new Date() },
-    },
-  });
 
   const raw = `bmi_${randomBytes(24).toString("hex")}`;
   const tokenHash = hashToken(raw);
   const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 86_400_000);
 
-  let invite;
-  if (existing) {
-    invite = await prisma.invitation.update({
-      where: { id: existing.id },
-      data: { tokenHash, role, expiresAt, invitedBy: ctx.userId },
-    });
-  } else {
-    invite = await prisma.invitation.create({
-      data: {
-        orgId: ctx.orgId,
-        email,
-        role,
-        tokenHash,
-        invitedBy: ctx.userId,
-        expiresAt,
+  const attempt = async (): Promise<{ created: boolean; inviteId: string }> => {
+    return prisma.$transaction(
+      async (tx) => {
+        // Refresh (same live invite for this email) instead of duplicating.
+        const existing = await tx.invitation.findFirst({
+          where: {
+            orgId: ctx.orgId,
+            email,
+            status: "PENDING",
+            expiresAt: { gt: new Date() },
+          },
+        });
+
+        if (existing) {
+          const refreshed = await tx.invitation.update({
+            where: { id: existing.id },
+            data: { tokenHash, role, expiresAt, invitedBy: ctx.userId },
+          });
+          return { created: false, inviteId: refreshed.id };
+        }
+
+        // Seat cap (RULE-ENT-05) — checked inside the same serializable
+        // transaction that inserts, so the check cannot go stale (audit F4).
+        if (plan.maxSeats !== null) {
+          const [used, pending] = await Promise.all([
+            tx.membership.count({ where: { orgId: ctx.orgId } }),
+            tx.invitation.count({
+              where: {
+                orgId: ctx.orgId,
+                status: "PENDING",
+                expiresAt: { gt: new Date() },
+              },
+            }),
+          ]);
+          if (used + pending >= plan.maxSeats) {
+            throw new Error(
+              `Your ${plan.name} plan allows ${plan.maxSeats} seats (${used + pending} already in use). Upgrade to invite more teammates.`,
+            );
+          }
+        }
+
+        const invite = await tx.invitation.create({
+          data: {
+            orgId: ctx.orgId,
+            email,
+            role,
+            tokenHash,
+            invitedBy: ctx.userId,
+            expiresAt,
+          },
+        });
+        return { created: true, inviteId: invite.id };
       },
-    });
+      { isolationLevel: "Serializable" },
+    );
+  };
+
+  // Serializable transactions can conflict under concurrency (Prisma P2034).
+  // One bounded retry — the second pass re-runs the seat check on fresh data.
+  let result: { created: boolean; inviteId: string };
+  try {
+    result = await attempt();
+  } catch (err) {
+    if (!isSerializationError(err)) throw err;
+    result = await attempt();
   }
 
   await audit({
     orgId: ctx.orgId,
     actorId: ctx.userId,
-    action: existing ? "member.reinvited" : "member.invited",
+    action: result.created ? "member.invited" : "member.reinvited",
     entity: "Invitation",
-    entityId: invite.id,
+    entityId: result.inviteId,
     meta: { role }, // email is PII — kept out of audit metadata
   });
 

@@ -4,6 +4,7 @@ import { getOrgContext } from "@/lib/tenancy";
 import { prisma } from "@/lib/db";
 import { Button, Card, EmptyState, Field, Input, SectionTitle, Select, Textarea } from "@/components/ui";
 import { createDecision } from "@/app/actions/decisions";
+import { SubmitButton } from "@/components/submit-button";
 
 export const metadata: Metadata = { title: "Decisions", robots: { index: false } };
 
@@ -57,7 +58,7 @@ export default async function DecisionsPage() {
               ))}
             </Select>
           </Field>
-          <Button type="submit">Log decision</Button>
+          <SubmitButton pendingLabel="Logging…">Log decision</SubmitButton>
         </form>
       </Card>
 

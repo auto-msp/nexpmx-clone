@@ -26,6 +26,8 @@ export async function buildContextAndAnswer(question: string) {
     throw new HttpError(402, "AI credit limit reached for this cycle. Upgrade your plan.");
   }
 
+  // Pre-check only (fast fail); the authoritative gate is the atomic
+  // conditional increment after the provider call (audit F3).
   const like = `%${question.toLowerCase()}%`;
 
   const [clients, projects, invoices, decisions] = await Promise.all([
@@ -88,10 +90,23 @@ export async function buildContextAndAnswer(question: string) {
   const provider = getAiProvider();
   const result = await provider.answer(question, context);
 
-  await prisma.organization.update({
-    where: { id: ctx.orgId },
+  // Atomic metering (audit F3): increment only while under the cap. A
+  // conditional updateMany is the check-and-set — concurrent queries can no
+  // longer both slip past the read-then-write window. Zero rows updated
+  // means another request consumed the final credits in the meantime.
+  const updated = await prisma.organization.updateMany({
+    where: {
+      id: ctx.orgId,
+      aiCreditsUsed: { lt: plan.aiCreditsPerMonth },
+    },
     data: { aiCreditsUsed: { increment: result.creditsUsed } },
   });
+  if (updated.count === 0 && result.creditsUsed > 0) {
+    throw new HttpError(
+      402,
+      "AI credit limit reached for this cycle. Upgrade your plan.",
+    );
+  }
   if (result.creditsUsed > 0) {
     await prisma.usageEvent.create({
       data: { orgId: ctx.orgId, kind: "ai.search", credits: result.creditsUsed },

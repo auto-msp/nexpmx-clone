@@ -83,8 +83,11 @@ const disk: StorageAdapter = {
     assertSafeKey(key);
     try {
       await unlink(path.join(dataRoot(), key));
-    } catch {
-      // Already gone is fine; audit records what happened.
+    } catch (err) {
+      // "Already gone" is a successful delete. Anything else (permissions,
+      // EBUSY, disk errors) must surface — swallowing it here created silent
+      // orphans (audit F2). Callers decide best-effort vs strict.
+      if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") throw err;
     }
   },
 

@@ -18,6 +18,7 @@ import {
   Select,
   Table,
 } from "@/components/ui";
+import { SubmitButton } from "@/components/submit-button";
 
 export const metadata: Metadata = { title: "Documents", robots: { index: false } };
 
@@ -121,7 +122,7 @@ export default async function DocumentsPage() {
             </Select>
           </Field>
           <div className="sm:col-span-2">
-            <Button type="submit">Upload</Button>
+            <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
           </div>
         </form>
       </Card>

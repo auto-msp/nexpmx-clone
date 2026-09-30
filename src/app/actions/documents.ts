@@ -97,20 +97,33 @@ export async function uploadDocument(formData: FormData): Promise<void> {
     throw new Error("Could not store the file. Please try again.");
   }
 
-  const doc = await prisma.document.create({
-    data: {
-      orgId: ctx.orgId,
-      uploaderId: ctx.userId,
-      projectId: projectIdResolved,
-      clientId: clientIdResolved,
-      title,
-      mimeType: mime,
-      sizeBytes: stored.sizeBytes,
-      storageKey: stored.key,
-      originalName: safeDisplayName(file.name),
-      sha256: stored.sha256,
-    },
-  });
+  let doc;
+  try {
+    doc = await prisma.document.create({
+      data: {
+        orgId: ctx.orgId,
+        uploaderId: ctx.userId,
+        projectId: projectIdResolved,
+        clientId: clientIdResolved,
+        title,
+        mimeType: mime,
+        sizeBytes: stored.sizeBytes,
+        storageKey: stored.key,
+        originalName: safeDisplayName(file.name),
+        sha256: stored.sha256,
+      },
+    });
+  } catch (err) {
+    // Compensating cleanup (audit F1): the blob was written but the metadata
+    // row was not — remove the orphan file so disk and DB stay consistent.
+    console.error("[documents] metadata write failed after storage.put", err);
+    await storage
+      .delete(stored.key)
+      .catch((cleanupErr) =>
+        console.error("[documents] orphan cleanup failed", stored.key, cleanupErr),
+      );
+    throw new Error("Could not save the document. Please try again.");
+  }
 
   await audit({
     orgId: ctx.orgId,

@@ -4,6 +4,7 @@ import { getOrgContext } from "@/lib/tenancy";
 import { prisma } from "@/lib/db";
 import { Badge, Button, Card, EmptyState, Field, Input, SectionTitle, Select } from "@/components/ui";
 import { createProject, updateProjectStatus, createTask, setTaskStatus } from "@/app/actions/projects";
+import { SubmitButton } from "@/components/submit-button";
 
 export const metadata: Metadata = { title: "Projects", robots: { index: false } };
 
@@ -54,7 +55,7 @@ export default async function ProjectsPage() {
             </Select>
           </Field>
           <div className="flex items-end">
-            <Button type="submit">Create project</Button>
+            <SubmitButton pendingLabel="Creating…">Create project</SubmitButton>
           </div>
         </form>
       </Card>

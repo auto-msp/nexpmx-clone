@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { canRead } from "@/lib/rbac";
 import { Badge, Button, Card, EmptyState, Field, Input, SectionTitle, Table } from "@/components/ui";
 import { createClient, archiveClient } from "@/app/actions/clients";
+import { SubmitButton } from "@/components/submit-button";
 
 export const metadata: Metadata = { title: "Clients", robots: { index: false } };
 
@@ -44,7 +45,7 @@ export default async function ClientsPage() {
             <Input name="phone" maxLength={40} placeholder="+91 …" />
           </Field>
           <div className="sm:col-span-2">
-            <Button type="submit">Create client</Button>
+            <SubmitButton pendingLabel="Creating…">Create client</SubmitButton>
           </div>
         </form>
       </Card>
