@@ -54,11 +54,12 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Unit tests
-        run: npx vitest run
-
       - name: Push schema to database
         run: npx prisma db push --skip-generate
+
+      # Unit + integration tests (integration needs the schema pushed above).
+      - name: Tests
+        run: npx vitest run
 
       - name: Production build
         run: npm run build
