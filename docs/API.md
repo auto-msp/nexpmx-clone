@@ -63,8 +63,9 @@ Browser-only; used by `/login`.
 | createInvoice / transitionInvoice | invoice:write | state machine + entitlement enforced |
 | createDecision | decision:write | |
 | buildContextAndAnswer | member | credits metered |
-| uploadDocument / deleteDocument | document:write | mime/size/storage caps; trial gated; audit |
-| inviteMemberAction / revokeInvitationAction | org:invite | seat cap at invite time; one-time link |
+| uploadDocument / deleteDocument | document:write | mime/size/storage caps; trial gated; audit; streaming download |
+| inviteMemberAction / revokeInvitationAction | org:invite | seat cap at invite time (serializable); one-time link |
+| createClient / createInvoice | client:write / invoice:write | idempotency-keyed: retries replay instead of duplicating |
 | generateApiKeyAction | org:invite | raw key shown once |
 
 Error convention: thrown errors surface as app error boundary; API routes

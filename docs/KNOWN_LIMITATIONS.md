@@ -18,7 +18,7 @@ Honest accounting. Each item: priority, why, dependency, complexity, risk.
 | 12 | Visual regression vs target | — | Intentionally out of scope (clean-room, original branding) | — | — | None (by design) |
 | 13 | Legal pages are placeholders | P1 | Must be replaced by real counsel-reviewed terms/privacy | lawyer | S | Legal exposure in production |
 | 14 | No MFA / device session management UI | P2 | Auth.js primitives exist; UI/policy pending | — | M | Weaker account security than enterprise norm |
-| 15 | Document download reads whole file into memory (Buffer); streaming + range requests pending | P3 | Files capped at 25 MB so worst case is bounded | — | S | Memory spikes on concurrent large downloads |
+| 15 | ~~Document download reads whole file into memory~~ RESOLVED 2026-09-30: downloads stream via `StorageAdapter.getStream` with exact Content-Length; HTTP range requests still pending | ~~P3~~ — | — | — | — | — |
 | 16 | TRIALING → ACTIVE is a manual DB action until billing lands (see #2); no self-serve checkout, no dunning | P1 | Same as #2 | processor | M | Expired-trial orgs see the plan gate but cannot self-serve |
 
 ## Explicitly not pursued (by design, not omission)

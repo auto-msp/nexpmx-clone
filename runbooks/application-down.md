@@ -53,8 +53,11 @@ sudo dmesg | tail -50                       # OOM / segfault evidence
 Common verified causes from the codebase:
 
 - **Missing/invalid env**: the unit loads `EnvironmentFile=/opt/bizmemory/.env`.
-  Missing `AUTH_SECRET` breaks Auth.js at request time; missing `DATABASE_URL`
-  breaks every DB query. Check `.env` exists and is readable by `www-data`.
+  Boot-time validation (`src/instrumentation.ts` → `src/lib/env.ts`) refuses
+  to serve with a consolidated `[boot] environment validation failed` report
+  in the journal. Verified behavior: the process stays up but answers 500 —
+  restart after fixing the reported variable. Missing `DATABASE_URL` breaks
+  every DB query; missing `AUTH_SECRET` breaks sessions and download links.
 - **Port conflict**: something else grabbed :3000 (`ss -tlnp`).
 - **Bad build artifacts**: `.next` present but stale/corrupt — rebuild
   (see `deployment-rollback.md`).

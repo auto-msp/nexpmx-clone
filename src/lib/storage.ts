@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile, unlink, stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import path from "node:path";
 
 /**
@@ -29,6 +31,11 @@ export interface StorageAdapter {
   /** Store bytes under a key namespaced by the caller's verified org. */
   put(orgId: string, data: Buffer): Promise<StoredObject>;
   get(key: string): Promise<Buffer>;
+  /**
+   * Streaming read for downloads (KNOWN_LIMITATIONS #15): constant memory
+   * regardless of file size. Implementations return a readable stream.
+   */
+  getStream(key: string): Promise<ReadableStream<Uint8Array>>;
   delete(key: string): Promise<void>;
   stat(key: string): Promise<{ sizeBytes: number } | null>;
 }
@@ -77,6 +84,12 @@ const disk: StorageAdapter = {
   async get(key) {
     assertSafeKey(key);
     return readFile(path.join(dataRoot(), key));
+  },
+
+  async getStream(key) {
+    assertSafeKey(key);
+    const nodeStream = createReadStream(path.join(dataRoot(), key));
+    return Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>;
   },
 
   async delete(key) {

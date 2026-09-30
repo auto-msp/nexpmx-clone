@@ -8,6 +8,7 @@ import { requirePermission } from "@/lib/rbac";
 import { planOf } from "@/lib/plans";
 import { audit } from "@/lib/audit";
 import { newPortalToken } from "@/lib/tenancy";
+import { withIdempotency } from "@/lib/idempotency";
 
 const createClientSchema = z.object({
   name: z.string().trim().min(1, "Client name is required").max(120),
@@ -30,6 +31,13 @@ export async function createClient(formData: FormData) {
     throw new Error(parsed.error.issues.map((i) => i.message).join("; "));
   }
 
+  // Idempotency: the form embeds a random key (rendered by the page).
+  // Missing/blank key → treated as a fresh non-retryable request.
+  const ik = String(formData.get("ik") ?? "").trim();
+  if (!/^[a-f0-9]{16,64}$/.test(ik)) {
+    throw new Error("Your session form expired. Reload the page and try again.");
+  }
+
   const plan = planOf(
     (
       await prisma.organization.findUnique({
@@ -49,24 +57,39 @@ export async function createClient(formData: FormData) {
     );
   }
 
-  const client = await prisma.client.create({
-    data: {
-      orgId: ctx.orgId,
-      name: parsed.data.name,
-      company: parsed.data.company ?? null,
-      email: parsed.data.email || null,
-      phone: parsed.data.phone ?? null,
-      portalToken: newPortalToken(),
-    },
-  });
+  // Claim key + create client in one serializable transaction: a retried
+  // submission replays the original client instead of duplicating it.
+  const outcome = await withIdempotency(
+    ctx.orgId,
+    "client.create",
+    ik,
+    async (tx) =>
+      tx.client.create({
+        data: {
+          orgId: ctx.orgId,
+          name: parsed.data.name,
+          company: parsed.data.company ?? null,
+          email: parsed.data.email || null,
+          phone: parsed.data.phone ?? null,
+          portalToken: newPortalToken(),
+        },
+        select: { id: true },
+      }),
+  );
+
+  if (outcome.kind === "replayed") {
+    // Same logical operation retried — nothing new to create or audit.
+    revalidatePath("/clients");
+    return;
+  }
 
   await audit({
     orgId: ctx.orgId,
     actorId: ctx.userId,
     action: "client.created",
     entity: "Client",
-    entityId: client.id,
-    meta: { name: client.name },
+    entityId: outcome.entityId,
+    meta: { name: parsed.data.name },
   });
 
   revalidatePath("/clients");

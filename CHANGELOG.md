@@ -5,6 +5,24 @@ Format: Keep a Changelog; versioning: SemVer.
 
 ## [0.2.0] — 2026-09-30
 
+### Added (late 0.2.0 — resilience pass)
+- **Server idempotency keys**: `IdempotencyKey` model + `withIdempotency`
+  (claim + create in one serializable transaction, bounded P2034 retry,
+  replay on retry). Wired into `createClient` and `createInvoice` with
+  per-render form keys — network retries and double-taps can no longer
+  duplicate rows.
+- **Streaming downloads**: `StorageAdapter.getStream` (Node → Web stream);
+  app and portal download routes stream instead of buffering, removing the
+  25 MB memory bound (closes KNOWN_LIMITATIONS #15). Exact Content-Length
+  via `stat`.
+- **Fail-fast env validation**: `src/instrumentation.ts` runs `assertEnvOrFail`
+  at boot — missing DATABASE_URL/AUTH_SECRET (and OAuth creds in production),
+  or an unwritable DOCUMENT_STORAGE_DIR, stops startup with a consolidated
+  error instead of per-request 500s.
+- **Restore drill executed** against the dev Postgres (dump → scratch restore
+  → row counts + marker fidelity → documents tarball round-trip), validating
+  `runbooks/data-recovery.md`.
+
 ### Added
 - **Document Hub (P1)**: upload/delete via local-disk storage adapter with an
   S3-compatible seam (`src/lib/storage.ts`); random org-scoped storage keys
@@ -32,6 +50,9 @@ Format: Keep a Changelog; versioning: SemVer.
 - **Infra**: systemd `ReadWritePaths` + provisioning for
   `/var/lib/bizmemory/documents`; nightly document backup + restore drill;
   `DOCUMENT_STORAGE_DIR` / `DOCUMENT_TOKEN_SECRET` env plumbing.
+- **Runbooks**: seven operational recovery guides under `runbooks/` for
+  verified failure modes (app down, database, document storage, deploy
+  rollback, OAuth login, data recovery, secret compromise).
 
 ### Changed
 - Invoice state machine extracted to `src/lib/invoice-state.ts` (shared by

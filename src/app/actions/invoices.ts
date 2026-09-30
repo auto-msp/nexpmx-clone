@@ -8,6 +8,7 @@ import { requirePermission } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
 import { canTransition, nextActionsFor } from "@/lib/invoice-state";
 import { requireEntitlement } from "@/lib/entitlements";
+import { withIdempotency } from "@/lib/idempotency";
 
 const createInvoiceSchema = z.object({
   clientId: z.string().trim().min(1, "Client is required"),
@@ -48,22 +49,33 @@ export async function createInvoice(formData: FormData) {
   const amountMinor = Math.round(parsed.data.amount * 100);
   if (!Number.isSafeInteger(amountMinor)) throw new Error("Invalid amount");
 
-  try {
-    await prisma.invoice.create({
-      data: {
-        orgId: ctx.orgId,
-        clientId: client.id,
-        number: parsed.data.number,
-        amountMinor,
-        status: "DRAFT",
-        dueAt: parsed.data.dueAt ? new Date(parsed.data.dueAt) : null,
-      },
-    });
-  } catch (e) {
-    if ((e as { code?: string }).code === "P2002") {
-      throw new Error("An invoice with this number already exists");
-    }
-    throw e;
+  // Idempotency: retried submissions replay the original invoice.
+  const ik = String(formData.get("ik") ?? "").trim();
+  if (!/^[a-f0-9]{16,64}$/.test(ik)) {
+    throw new Error("Your session form expired. Reload the page and try again.");
+  }
+
+  const outcome = await withIdempotency(
+    ctx.orgId,
+    "invoice.create",
+    ik,
+    async (tx) =>
+      tx.invoice.create({
+        data: {
+          orgId: ctx.orgId,
+          clientId: client.id,
+          number: parsed.data.number,
+          amountMinor,
+          status: "DRAFT",
+          dueAt: parsed.data.dueAt ? new Date(parsed.data.dueAt) : null,
+        },
+        select: { id: true },
+      }),
+  );
+
+  if (outcome.kind === "replayed") {
+    revalidatePath("/invoices");
+    return;
   }
 
   await audit({
@@ -71,6 +83,7 @@ export async function createInvoice(formData: FormData) {
     actorId: ctx.userId,
     action: "invoice.created",
     entity: "Invoice",
+    entityId: outcome.entityId,
     meta: { number: parsed.data.number, amountMinor },
   });
 

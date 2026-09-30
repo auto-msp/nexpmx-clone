@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { Badge, Button, Card, EmptyState, Field, Input, SectionTitle, Select, Table } from "@/components/ui";
 import { createInvoice, transitionInvoice } from "@/app/actions/invoices";
 import { formatInr } from "@/lib/plans";
+import { newIdempotencyKey } from "@/lib/idempotency";
 
 export const metadata: Metadata = { title: "Invoices", robots: { index: false } };
 
@@ -38,6 +39,9 @@ export default async function InvoicesPage() {
     PAID: [],
   };
 
+  // Fresh key per render: retries of this submission replay, not duplicate.
+  const ik = newIdempotencyKey();
+
   return (
     <div className="space-y-8">
       <div>
@@ -50,6 +54,7 @@ export default async function InvoicesPage() {
       <Card>
         <SectionTitle>New invoice</SectionTitle>
         <form action={createInvoice} className="mt-4 grid gap-4 sm:grid-cols-4">
+          <input type="hidden" name="ik" value={ik} />
           <Field label="Client *">
             <Select name="clientId" required defaultValue="">
               <option value="" disabled>Choose…</option>

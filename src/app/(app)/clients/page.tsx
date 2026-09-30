@@ -6,6 +6,7 @@ import { canRead } from "@/lib/rbac";
 import { Badge, Button, Card, EmptyState, Field, Input, SectionTitle, Table } from "@/components/ui";
 import { createClient, archiveClient } from "@/app/actions/clients";
 import { SubmitButton } from "@/components/submit-button";
+import { newIdempotencyKey } from "@/lib/idempotency";
 
 export const metadata: Metadata = { title: "Clients", robots: { index: false } };
 
@@ -13,6 +14,10 @@ export default async function ClientsPage() {
   const session = await auth();
   const ctx = await getOrgContext(session!.user!.id);
   if (!canRead(ctx!.role)) throw new Error("Forbidden");
+
+  // Fresh key per render: one logical create per form view; retries of THIS
+  // submission reuse the key and replay instead of duplicating.
+  const ik = newIdempotencyKey();
 
   const clients = await prisma.client.findMany({
     where: { orgId: ctx!.orgId },
@@ -32,6 +37,7 @@ export default async function ClientsPage() {
       <Card>
         <SectionTitle>Add a client</SectionTitle>
         <form action={createClient} className="mt-4 grid gap-4 sm:grid-cols-2">
+          <input type="hidden" name="ik" value={ik} />
           <Field label="Name *">
             <Input name="name" required maxLength={120} placeholder="Acme Corp" />
           </Field>

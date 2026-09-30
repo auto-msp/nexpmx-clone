@@ -33,6 +33,7 @@ User 1─* Membership *─1 Organization 1─* Client 1─* Project 1─* Task
                           ├─* ApiKey
                           ├─* Automation
                           ├─* Invitation
+                          ├─* IdempotencyKey
                           └─1 Subscription
 User 1─* Session / Account (Auth.js)
 User 1─* Notification
@@ -47,6 +48,10 @@ Comment: polymorphic-lite — nullable FKs to Decision | Project | Client
 - `Invitation.tokenHash` unique — same SHA-256 pattern as API keys; invite
   links are single-use capabilities.
 - `Subscription.orgId` unique — exactly one lifecycle row per org.
+- `IdempotencyKey (orgId, scope, key)` unique — retried create submissions
+  (same rendered form) replay the original entity instead of duplicating;
+  claim and create happen in one serializable transaction. Keys older than
+  30 days are prunable (`pruneIdempotencyKeys`).
 - `Document.storageKey` unique — one disk object per row; keys are random,
   org-scoped, and never user-derived.
 - Hot paths indexed: `(Client orgId,status)`, `(Project orgId,status)`,

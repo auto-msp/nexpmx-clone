@@ -95,18 +95,19 @@ model Organization {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  memberships  Membership[]
-  clients      Client[]
-  projects     Project[]
-  invoices     Invoice[]
-  decisions    Decision[]
-  documents    Document[]
-  automations  Automation[]
-  auditLogs    AuditLog[]
-  usageEvents  UsageEvent[]
-  apiKeys      ApiKey[]
-  invitations  Invitation[]
-  subscription Subscription?
+  memberships     Membership[]
+  clients         Client[]
+  projects        Project[]
+  invoices        Invoice[]
+  decisions       Decision[]
+  documents       Document[]
+  automations     Automation[]
+  auditLogs       AuditLog[]
+  usageEvents     UsageEvent[]
+  apiKeys         ApiKey[]
+  invitations     Invitation[]
+  subscription    Subscription?
+  idempotencyKeys IdempotencyKey[]
 }
 
 enum Plan {
@@ -357,6 +358,25 @@ model Automation {
   org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId])
+}
+
+// ─── Idempotency ─────────────────────────────────────────────────────────────
+// Server-side idempotency for create operations (resilience follow-up):
+// the form supplies a random key; the first insert records it inside the
+// same transaction. A retried submission with the same key returns the
+// original result instead of creating a second row.
+
+model IdempotencyKey {
+  id        String       @id @default(cuid())
+  orgId     String
+  scope     String // e.g. "client.create", "invoice.create"
+  key       String
+  entityId  String // id of the record created under this key
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, scope, key])
+  @@index([orgId, createdAt])
 }
 
 // ─── Billing lifecycle ───────────────────────────────────────────────────────

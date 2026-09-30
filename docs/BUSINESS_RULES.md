@@ -17,6 +17,7 @@
 | RULE-ENT-04 | TRIALING orgs have 14 days; expired trials, PAST_DUE and CANCELED orgs see the plan gate and are refused mutations | Account-holder evidence (A, 2026-09-30) | `requireEntitlement` + (app) layout gate | ✅ unit + integration |
 | RULE-ENT-05 | Seats consumed by members + live pending invites; capped at `plan.maxSeats` at invite AND accept time | Observed seat caps pattern (A: structure) | `src/lib/seats.ts` + `inviteMemberAction` + `/invite/[token]` | ✅ integration |
 | RULE-DOC-01 | Download links are HMAC-signed, expire in 5 minutes, and are re-verified against session + org scope; portal links additionally bound to the portal token | Engineering (SECURITY.md §Uploads) | `src/lib/documents.ts` + download routes | ✅ unit + e2e (14 checks) |
+| RULE-IDEM-01 | Create submissions carry a per-render idempotency key; a retried submission replays the original record instead of duplicating (claim + create in one serializable transaction) | Engineering (resilience audit) | `src/lib/idempotency.ts` + `createClient`/`createInvoice` | ✅ integration (`tests/followups.test.ts`) |
 
 Where evidence is C or lower, the rule is our defensible reconstruction, not a
 claim about the target's internals — see ASSUMPTIONS.md.

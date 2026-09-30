@@ -5,6 +5,7 @@ import { getOrgContext } from "@/lib/tenancy";
 import { audit } from "@/lib/audit";
 import { rateLimit } from "@/lib/api";
 import { storage } from "@/lib/storage";
+import { Readable } from "node:stream";
 import { isAllowedMime, verifyDownloadToken } from "@/lib/documents";
 import { isEntitled } from "@/lib/subscription";
 
@@ -71,9 +72,15 @@ export async function GET(
       return NextResponse.json({ error: "File type not permitted" }, { status: 403 });
     }
 
-    let bytes: Buffer;
+    // Exact size for Content-Length without buffering the file.
+    const fileStat = await storage.stat(doc.storageKey);
+    if (!fileStat) {
+      return NextResponse.json({ error: "File missing from storage" }, { status: 404 });
+    }
+
+    let stream: ReadableStream<Uint8Array>;
     try {
-      bytes = await storage.get(doc.storageKey);
+      stream = await storage.getStream(doc.storageKey);
     } catch {
       return NextResponse.json({ error: "File missing from storage" }, { status: 404 });
     }
@@ -84,15 +91,15 @@ export async function GET(
       action: "document.downloaded",
       entity: "Document",
       entityId: documentId,
-      meta: { sizeBytes: bytes.byteLength, via: "app" },
+      meta: { sizeBytes: fileStat.sizeBytes, via: "app" },
     });
 
     const filename = doc.originalName || doc.title;
-    return new NextResponse(new Uint8Array(bytes), {
+    return new Response(stream, {
       status: 200,
       headers: {
         "Content-Type": doc.mimeType,
-        "Content-Length": String(bytes.byteLength),
+        "Content-Length": String(fileStat.sizeBytes),
         "Content-Disposition": `attachment; filename="${filename.replace(/["\\\r\n]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
