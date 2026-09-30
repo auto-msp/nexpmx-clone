@@ -1,0 +1,21 @@
+node_modules
+.next
+out
+build
+dist
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# db
+*.db
+*.sqlite
+
+# misc
+.DS_Store
+*.log
+coverage
+.turbo
+*.tsbuildinfo

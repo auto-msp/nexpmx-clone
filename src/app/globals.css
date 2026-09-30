@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens (DESIGN_SYSTEM.md).
+ * Semantic tokens first; component styles consume tokens, never raw hex.
+ */
+@theme {
+  --color-bg: #0b0d12;
+  --color-surface: #12151d;
+  --color-surface-2: #191d28;
+  --color-border: #262b38;
+  --color-text: #e7eaf0;
+  --color-muted: #99a2b4;
+  --color-brand: #6366f1;
+  --color-brand-strong: #4f46e5;
+  --color-brand-soft: #312e81;
+  --color-success: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-brand);
+  color: white;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

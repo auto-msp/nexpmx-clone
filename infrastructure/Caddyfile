@@ -1,0 +1,10 @@
+# Caddyfile — automatic HTTPS via Let's Encrypt.
+# Replace app.yourdomain.com with your DNS A/AAAA record target.
+app.yourdomain.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		# Next.js already sends CSP and friends; Caddy adds transport-level bits.
+	}
+}

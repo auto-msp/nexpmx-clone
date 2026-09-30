@@ -1,0 +1,22 @@
+[Unit]
+Description=BizMemory web app
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/bizmemory
+EnvironmentFile=/opt/bizmemory/.env
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=3
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/bizmemory/.next /opt/bizmemory/.prisma /opt/bizmemory/node_modules/.prisma
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

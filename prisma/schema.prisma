@@ -1,0 +1,353 @@
+// Prisma schema — clean-room domain model for a Business-Memory SaaS.
+// Reconstructed from observable product behavior; see docs/DATABASE.md
+// for the OBSERVED / INFERRED / ASSUMED provenance of every entity.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Identity ────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  image         String?
+  googleId      String?  @unique
+  role          Role     @default(MEMBER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships    Membership[]
+  accounts       Account[]
+  sessions       Session[]
+  decisions      Decision[]
+  comments       Comment[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+
+  @@index([email])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+  CLIENT
+  GUEST
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Tenancy ─────────────────────────────────────────────────────────────────
+
+model Organization {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  brandColor     String   @default("#2563eb")
+  logoUrl        String?
+  plan           Plan     @default(STARTER)
+  aiCreditsLimit Int      @default(1000)
+  aiCreditsUsed  Int      @default(0)
+  storageLimitMb Int      @default(10240)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  memberships Membership[]
+  clients     Client[]
+  projects    Project[]
+  invoices    Invoice[]
+  decisions   Decision[]
+  documents   Document[]
+  automations Automation[]
+  auditLogs   AuditLog[]
+  usageEvents UsageEvent[]
+  apiKeys     ApiKey[]
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+  SCALE
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  orgId     String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+}
+
+// ─── Core business memory ────────────────────────────────────────────────────
+
+model Client {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  status    ClientStatus @default(ACTIVE)
+  portalToken String @unique @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  projects  Project[]
+  invoices  Invoice[]
+  documents Document[]
+  decisions Decision[]
+  comments  Comment[]
+
+  @@index([orgId, status])
+}
+
+enum ClientStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  orgId     String
+  clientId  String?
+  name      String
+  status    ProjectStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  tasks     Task[]
+  documents Document[]
+  decisions Decision[]
+  comments  Comment[]
+
+  @@index([orgId, status])
+  @@index([clientId])
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  orgId     String
+  projectId String
+  title     String
+  status    TaskStatus @default(TODO)
+  assigneeId String?
+  dueDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, projectId, status])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  orgId      String
+  clientId   String
+  number     String
+  amountMinor Int     // minor units (paise) — never store money as float
+  currency   String   @default("INR")
+  status     InvoiceStatus @default(DRAFT)
+  issuedAt   DateTime?
+  dueAt      DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  @@unique([orgId, number])
+  @@index([orgId, status])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+}
+
+model Decision {
+  id        String   @id @default(cuid())
+  orgId     String
+  authorId  String
+  projectId String?
+  clientId  String?
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+
+  @@index([orgId, createdAt])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  orgId     String
+  uploaderId String
+  projectId String?
+  clientId  String?
+  title     String
+  mimeType  String
+  sizeBytes Int
+  storageKey String  // object-storage key; never the raw URL
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  orgId     String
+  authorId  String
+  body      String
+  decisionId String?
+  projectId String?
+  clientId  String?
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  decision  Decision? @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, decisionId])
+  @@index([orgId, projectId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  orgId     String
+  type      String
+  payloadJson String @default("{}")
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+model AuditLog {
+  id       String   @id @default(cuid())
+  orgId    String
+  actorId  String?
+  action   String
+  entity   String
+  entityId String?
+  metaJson String  @default("{}")
+  ip       String?
+  createdAt DateTime @default(now())
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor    User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+  @@index([entity, entityId])
+}
+
+model UsageEvent {
+  id        String   @id @default(cuid())
+  orgId     String
+  kind      String   // e.g. "ai.search", "ai.generate"
+  credits   Int      @default(0)
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, kind, createdAt])
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  prefix    String
+  keyHash   String   @unique // SHA-256 of the raw key; raw key is never stored
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+model Automation {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  enabled   Boolean  @default(false)
+  trigger   String   // typed keys: invoice.created, task.done, decision.created
+  action    String   // typed keys: notify, create_task
+  configJson String  @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
