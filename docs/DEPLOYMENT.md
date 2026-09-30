@@ -103,11 +103,30 @@ app.yourdomain.com {
 sudo systemctl reload caddy
 ```
 
-## 7. Deploy script
+## 7. Scripts (all idempotent, all syntax-checked)
 
-`infrastructure/deploy.sh` automates steps 4–5 for updates (pull → migrate →
-build → restart, with health verification and rollback-on-failure of the
-service start).
+| Script | Purpose |
+| --- | --- |
+| `infrastructure/provision.sh` | One-shot VM provisioning: packages, DB, code, `.env` (never overwrites), build, systemd, Caddy, firewall, health gate |
+| `infrastructure/deploy.sh` | App updates: pull → migrate → build → restart → health-gate |
+| `infrastructure/backup.sh` | Nightly `pg_dump -Fc` with retention cleanup (cron) |
+| `infrastructure/restore.sh` | Restore **drill** into a scratch DB by default; live overwrite requires `TARGET=bizmemory FORCE=1` |
+
+### Fast path (fresh Ubuntu VM)
+
+```bash
+sudo DB_PASSWORD='strong-password' DOMAIN=app.yourdomain.com \
+  ./infrastructure/provision.sh
+# then edit /opt/bizmemory/.env (Google OAuth creds, OWNER_EMAILS) and:
+sudo systemctl restart bizmemory
+```
+
+### Backup cron
+
+```bash
+# /etc/cron.d/bizmemory-backup
+0 2 * * * root /opt/bizmemory/infrastructure/backup.sh >> /var/log/bizmemory-backup.log 2>&1
+```
 
 ## Environments
 
