@@ -36,6 +36,10 @@ jobs:
       OWNER_EMAILS: ci@example.com
       AI_PROVIDER: stub
       AUTH_URL: http://localhost:3000
+      # Boot-time env validation (src/lib/env.ts) checks writability.
+      # The production default /var/lib/bizmemory/documents does not exist on
+      # runners, so CI points at a temp dir created in the smoke step.
+      DOCUMENT_STORAGE_DIR: /tmp/bizmemory-docs
 
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +70,7 @@ jobs:
 
       - name: Smoke test (boot server, probe routes)
         run: |
+          mkdir -p "$DOCUMENT_STORAGE_DIR"
           nohup npm run start > server.log 2>&1 &
           SERVER_PID=$!
           for i in $(seq 1 20); do
