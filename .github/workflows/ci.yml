@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck · Test · Build · Smoke
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bizmemory
+          POSTGRES_PASSWORD: bizmemory
+          POSTGRES_DB: bizmemory
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bizmemory"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://bizmemory:bizmemory@127.0.0.1:5432/bizmemory
+      AUTH_SECRET: ci-only-secret-not-used-in-production-0123456789abcdef
+      AUTH_GOOGLE_ID: dummy
+      AUTH_GOOGLE_SECRET: dummy
+      OWNER_EMAILS: ci@example.com
+      AI_PROVIDER: stub
+      AUTH_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Push schema to database
+        run: npx prisma db push --skip-generate
+
+      - name: Production build
+        run: npm run build
+
+      - name: Smoke test (boot server, probe routes)
+        run: |
+          nohup npm run start > server.log 2>&1 &
+          SERVER_PID=$!
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:3000/api/health > /dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          echo "--- health:";    curl -fsS http://127.0.0.1:3000/api/health
+          echo "--- home:";      curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/
+          echo "--- pricing:";   curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/pricing
+          echo "--- gate:";      curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" http://127.0.0.1:3000/overview
+          echo "--- api no key:"; curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/api/v1/clients
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/v1/clients)
+          GATE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/overview)
+          if [ "$STATUS" != "401" ] || [ "$GATE" != "307" ]; then
+            echo "Smoke assertions failed (api=$STATUS gate=$GATE)"; exit 1
+          fi
+          kill $SERVER_PID 2>/dev/null || true
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: server.log
+          retention-days: 5
