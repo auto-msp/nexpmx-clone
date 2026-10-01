@@ -40,6 +40,8 @@ standard SaaS architecture — see `ASSUMPTIONS.md`.
 | `/assistant` | Dynamic | Session | Grounded AI Q&A + credits | Inferred (B) |
 | `/settings` | Dynamic | Session | Workspace, team, API keys, audit view | Assumed (C) |
 | `/documents` | Dynamic | Session | Document Hub: upload/download, storage meter | Inferred (B) |
+| `/billing` | Dynamic | Session (works while gate active) | Plan chooser + checkout entry; reachable from the expired-trial gate | Engineering addition (ADR-017) |
+| `/billing/checkout` | Dynamic | Session (org-scoped order) | Razorpay Checkout host page | Engineering addition (ADR-017) |
 | `/invite/[token]` | Dynamic | Invite token | Invitation acceptance (seat-checked) | Engineering addition |
 | `/portal/[token]` | Dynamic | Portal token | Read-only client portal + documents | Inferred (B) |
 | `/portal/[token]/download/[documentId]` | Handler | Portal token | Signed portal download | Engineering addition |
@@ -48,6 +50,7 @@ standard SaaS architecture — see `ASSUMPTIONS.md`.
 | `/api/v1/clients` | Handler | API key | List/create clients | Engineering addition |
 | `/api/v1/invoices` | Handler | API key | List invoices | Engineering addition |
 | `/api/download/[documentId]` | Handler | Session + signed token | App download (5-min HMAC) | Engineering addition |
+| `/api/webhooks/razorpay` | Handler | HMAC signature | Payment webhook: verify → ledger (exactly-once) → activate FSM | Engineering addition (ADR-017) |
 | `/robots.txt`, `/sitemap.xml` | Generated | Public | SEO | Engineering addition |
 
 ## Auth-gate behavior

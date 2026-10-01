@@ -14,6 +14,7 @@ const NAV = [
   { href: "/decisions", label: "Decisions" },
   { href: "/assistant", label: "AI Assistant" },
   { href: "/settings", label: "Settings" },
+  { href: "/billing", label: "Billing" },
 ];
 
 export function AppSidebar({
@@ -140,10 +141,17 @@ export function TrialGate({ plan }: { plan: string }) {
             </div>
           ))}
         </div>
-        <p className="mt-8 text-sm text-muted">
-          Billing is not wired up yet — contact us to activate a plan, or see the{" "}
-          <a href="/pricing" className="text-brand hover:underline">pricing page</a> for details.
-        </p>
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <a
+            href="/billing"
+            className="rounded-[var(--radius-control)] bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-strong"
+          >
+            Choose a plan &amp; reactivate
+          </a>
+          <p className="text-sm text-muted">
+            or see the <a href="/pricing" className="text-brand hover:underline">pricing page</a> for details.
+          </p>
+        </div>
       </div>
     </div>
   );

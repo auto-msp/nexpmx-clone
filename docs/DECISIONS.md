@@ -92,6 +92,61 @@
   single point of failure. Presigned URLs will replace ours per-backend when
   S3 lands.
 
+## ADR-017 — Billing rail: Razorpay orders + webhook-verified activation
+
+- **Context:** KNOWN_LIMITATIONS #2/#16 — TRIALING→ACTIVE needs a payment
+  rail; requirement is India/UPI, seat-based monthly INR pricing, webhook
+  notifications, Next.js server integration. Provider choice made via a
+  structured comparison (Gravity Index search, 2026-10-01) of the two
+  India-first candidates.
+- **Candidates considered:**
+
+  | Constraint | Razorpay | Cashfree |
+  | --- | --- | --- |
+  | UPI + cards + netbanking | ✅ full coverage incl. UPI Autopay | ✅ full coverage |
+  | Subscriptions / recurring | ✅ native (Subscriptions, UPI Autopay mandates) | ✅ subscriptions; fewer mandate options historically |
+  | Webhook model | at-least-once, HMAC-SHA256 signature header, per-event types | at-least-once, HMAC signature, similar shape |
+  | Node/Next integration | mature SDK + well-documented raw-fetch path | SDK; docs thinner for App-Router patterns |
+  | Pricing | ~2% MDR standard; platform fees for payouts | competitive ~2%, settled T+0/T+1 options |
+  | Docs/community depth | largest among Indian PGs | solid, smaller ecosystem |
+
+  Both satisfy the hard requirements. **Decision: Razorpay** for the
+  deeper subscription/UPI-Autopay tooling and the largest integration
+  surface; Cashfree remains a viable swap because the integration is
+  isolated to `src/lib/razorpay.ts` + one webhook route (adapter seam,
+  same as the storage adapter precedent in ADR-014).
+- **Decision:**
+  - Orders-based checkout (`POST /v1/orders`) with a **server-computed
+    quote** (`seats × plan price`, paise); the browser never states an amount.
+  - `CheckoutSession` row per order (plan/seats/amount/org); orgId + plan
+    + seats stamped into order `notes`.
+  - **Webhook is the activation authority**: `payment.captured` /
+    `order.paid` / `subscription.charged` / `subscription.activated` →
+    `activatePlan` (TRIALING→ACTIVE or period extension).
+    `payment.failed` (ACTIVE only) → PAST_DUE.
+  - Webhook authenticity = HMAC-SHA256 over the raw body with
+    `RAZORPAY_WEBHOOK_SECRET`, constant-time compared; malformed payloads
+    (zod) rejected with 400.
+  - Idempotency = `BillingEvent (provider, eventType, externalId)` UNIQUE;
+    ledger insert and subscription mutation are ordered so redeliveries
+    replay as "duplicate" without re-applying.
+  - State transitions go through the explicit table in
+    `src/lib/subscription-state.ts`; illegal moves throw.
+  - `verifyCheckout` (widget callback) verifies Razorpay's
+    `order|payment` HMAC but **never** activates — it is UX-only.
+  - Support-activated fallback (`activatePlanAction`) kept, audited,
+    OWNER-only (the pre-billing manual path, now guarded).
+- **Reason:** matches the stateful-domain requirements (authoritative
+  server state, idempotent redelivery-safe webhooks, seat-based pricing,
+  explicit FSM) with the smallest dependency footprint; no SDK needed for
+  the two endpoints used. Env: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
+  `RAZORPAY_WEBHOOK_SECRET` (never committed, never logged).
+- **Deliberately out of scope this pass:** Razorpay Subscriptions product
+  (recurring mandates) — our 30-day periods are webhook-extended from order
+  payments; native subscriptions can be layered on without schema change
+  (`razorpaySubscriptionId` column already reserved). GST/UPI invoice
+  fields stay KNOWN_LIMITATIONS #10.
+
 ## ADR-016 — Trial: Subscription row with TRIALING bootstrap
 
 - **Observed:** account holder confirms a 14-day trial at signup

@@ -3,8 +3,8 @@
 ## Purpose
 
 A credential may have been exposed: `AUTH_SECRET`, a `bm_…` API key, Google
-OAuth client secret, database password, or an unredacted HAR/session export.
-Contain, rotate, and verify.
+OAuth client secret, database password, a Razorpay billing secret, or an
+unredacted HAR/session export. Contain, rotate, and verify.
 
 ## Impact
 
@@ -16,6 +16,12 @@ Depends on the secret:
   rate limits (60 req/min per org).
 - **DB password** — direct data access, bypassing the app entirely.
 - **OAuth client secret** — impersonation of the app's login flow.
+- **RAZORPAY_KEY_SECRET** — ability to create orders/verify checkout
+  callbacks as us (fraudulent checkouts); does NOT activate subscriptions
+  (activation requires the webhook secret).
+- **RAZORPAY_WEBHOOK_SECRET** — forged webhook events could activate or
+  extend subscriptions without payment (verified: signature check is the
+  only activation gate, `src/app/api/webhooks/razorpay/route.ts`).
 
 ## Symptoms
 
@@ -71,6 +77,7 @@ Rotation matrix (all REQUIRES HUMAN APPROVAL; none are automated):
 | API keys | revoke row + mint new in Settings | new raw key shown once to the org owner |
 | `AUTH_GOOGLE_SECRET` | Google Cloud Console + `.env` + restart | login works again after update |
 | DB password | Postgres role + `.env` + restart | app reconnects with new creds |
+| `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | Razorpay Dashboard (regenerate keys / re-issue webhook secret) + `.env` + restart | checkouts and webhook deliveries work again; update the webhook secret in the dashboard FIRST, then the server |
 
 Mechanics (same pattern every time): update the value in the Google/DB
 console where applicable → update `/opt/bizmemory/.env` →

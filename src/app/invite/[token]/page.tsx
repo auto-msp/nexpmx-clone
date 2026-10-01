@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { hashToken } from "@/lib/tenancy";
 import { planOf } from "@/lib/plans";
+import { getOrCreateSubscription } from "@/lib/subscription";
 import { audit } from "@/lib/audit";
 import { Badge, ButtonLink, Card } from "@/components/ui";
 
@@ -83,6 +84,11 @@ export default async function InvitePage({
     );
   }
 
+  // Seat cap source: purchased seats (ACTIVE sub) or plan.maxSeats fallback.
+  const sub = await getOrCreateSubscription(invite.org.id);
+  const seatCap =
+    sub.state === "ACTIVE" && sub.seats !== null ? sub.seats : plan.maxSeats;
+
   // Accept path: seat re-check (RULE-ENT-05) and the membership insert must
   // be one serializable transaction, or two concurrent acceptances of the
   // last seat both pass the count check (audit F4). Bounded retry on
@@ -90,14 +96,15 @@ export default async function InvitePage({
   const acceptAttempt = async (): Promise<boolean> => {
     return prisma.$transaction(
       async (tx) => {
-        if (plan.maxSeats !== null) {
+        // Cap = purchased seats (ACTIVE sub) or plan.maxSeats fallback.
+        if (seatCap !== null) {
           const [used, pending] = await Promise.all([
             tx.membership.count({ where: { orgId } }),
             tx.invitation.count({
               where: { orgId, status: "PENDING", expiresAt: { gt: new Date() } },
             }),
           ]);
-          if (used + pending >= plan.maxSeats) {
+          if (used + pending >= seatCap) {
             return false; // out of seats — render the refusal below
           }
         }
@@ -127,7 +134,7 @@ export default async function InvitePage({
       <InviteFrame>
         <h1 className="text-xl font-semibold">No seats left</h1>
         <p className="mt-3 text-sm text-muted">
-          The {plan.name} plan allows {plan.maxSeats} seats and they are all in
+          The workspace's plan allows {seatCap} seats and they are all in
           use. Ask an admin to free a seat or upgrade the plan.
         </p>
       </InviteFrame>

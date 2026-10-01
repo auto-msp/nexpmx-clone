@@ -3,6 +3,63 @@
 All notable changes to this project are documented here.
 Format: Keep a Changelog; versioning: SemVer.
 
+## [0.3.0] — 2026-10-01
+
+### Added (billing — KNOWN_LIMITATIONS #2/#16)
+- **Payment rail (ADR-017)**: Razorpay chosen over Cashfree via structured
+  comparison (UPI coverage, subscription tooling, webhook model, integration
+  depth); isolated behind `src/lib/razorpay.ts` so the provider remains
+  swappable. Orders-based checkout with a **server-computed quote**
+  (`seats × plan price`, paise) — the browser never states an amount.
+- **Subscription state machine** (`RULE-SUB-01`): explicit transition table
+  (`src/lib/subscription-state.ts`) — TRIALING→ACTIVE, ACTIVE→PAST_DUE/
+  CANCELED, PAST_DUE→ACTIVE/CANCELED, CANCELED→ACTIVE on fresh payment;
+  never re-trialing. Illegal moves throw; guarded updates use a from-state
+  condition so stale reads cannot clobber newer states.
+- **Webhook activation** (`RULE-SUB-02/03`): `POST /api/webhooks/razorpay`
+  verifies the HMAC-SHA256 signature (constant-time) over the raw body,
+  validates the envelope with zod, records each event exactly once in the
+  `BillingEvent` ledger ((provider, eventType, externalId) UNIQUE —
+  redeliveries replay as "duplicate" with zero side effects), maps events to
+  orgs via order notes, and applies TRIALING→ACTIVE / period extension /
+  PAST_DUE. Unmappable events are stored (orgId null) for reconciliation,
+  never applied. Meaningful changes audited (ids/plan/seats only).
+- **Checkout UX**: `/billing` (outside the expired-trial gate — an expired
+  org must be able to pay) with the plan chooser and seat picker;
+  `/billing/checkout` hosts the Razorpay widget; the widget callback is
+  verified (HMAC) but UX-only — activation authority stays with the webhook.
+  `TrialGate` now links to `/billing` ("Choose a plan & reactivate").
+- **Seat-based pricing** (`RULE-ENT-05` update): when a subscription is
+  ACTIVE, the seat cap is the purchased `Subscription.seats`; otherwise the
+  plan's static `maxSeats`. Enforced at invite AND accept time as before.
+- **Support-activated fallback**: the old manual DB activation is now an
+  audited, transition-guarded, OWNER-only server action.
+- **Schema**: `Subscription` billing fields (period start/end, seats,
+  `razorpaySubscriptionId`, last payment), new `CheckoutSession` (org-scoped,
+  unique order id, server quote) and `BillingEvent` (idempotency ledger).
+- **Tests**: 22 billing tests (FSM table, entitlement states, activation/
+  recovery/reactivation, webhook signature fail-closed, payload mapping,
+  ledger idempotency, seat quoting) and a 17-check billing webhook e2e
+  script (`scripts/e2e-billing.mts`) over live HTTP: unsigned → 400,
+  activation end-to-end, redelivery exactly-once, signed garbage → 400.
+  Totals: 81 vitest tests (5 files), 14-check download e2e, 17-check
+  billing e2e.
+- **Env**: `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` /
+  `RAZORPAY_WEBHOOK_SECRET` (`.env.example` updated). Without them the app
+  boots and runs with checkout in contact-us mode (no boot failure —
+  billing is optional at runtime).
+
+### Changed
+- `requireEntitlement` now shares the single entitlement rule with the
+  billing core (`isSubscriptionEntitled`) — one definition of "open".
+- `TrialGate` copy links to `/billing` instead of "contact us".
+- Route count 26 → 30 (billing page + checkout page + webhook + (billing)
+  group layout noop).
+
+### Closed
+- KNOWN_LIMITATIONS #16 (self-serve activation) — closed; #2 mostly closed
+  (residual: live processor keys/KYC, native Razorpay Subscriptions).
+
 ## [0.2.0] — 2026-09-30
 
 ### Added (late 0.2.0 — resilience pass)

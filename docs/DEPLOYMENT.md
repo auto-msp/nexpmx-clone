@@ -39,7 +39,17 @@ AUTH_GOOGLE_SECRET="…"
 OWNER_EMAILS="you@yourdomain.com"
 AI_PROVIDER="stub"
 AUTH_URL="https://app.yourdomain.com"
+DOCUMENT_STORAGE_DIR="/var/lib/bizmemory/documents"
+RAZORPAY_KEY_ID="…"          # optional; absent = checkout in contact-us mode
+RAZORPAY_KEY_SECRET="…"      # server-only
+RAZORPAY_WEBHOOK_SECRET="…"  # must match the Razorpay dashboard webhook config
 ```
+
+Razorpay webhook (ADR-017): point it at
+`https://app.yourdomain.com/api/webhooks/razorpay`, events
+`payment.captured`, `order.paid`, `payment.failed`,
+`subscription.charged`, `subscription.activated`; set the same secret in
+both places. Rotating it: dashboard first, then `.env`, then restart.
 
 Google OAuth redirect URI: `https://app.yourdomain.com/api/auth/callback/google`.
 

@@ -4,6 +4,7 @@ import {
   getOrCreateSubscription,
   TrialExpiredError,
 } from "@/lib/subscription";
+import { isSubscriptionEntitled } from "@/lib/billing";
 
 /**
  * Entitlement guards shared by pages and actions (BUSINESS_RULES.md).
@@ -20,12 +21,9 @@ import {
 export async function requireEntitlement(orgId: string): Promise<void> {
   const sub = await getOrCreateSubscription(orgId);
   if (!sub) return; // defensive; getOrCreate always returns
-  const entitled =
-    sub.state === "ACTIVE" ||
-    (sub.state === "TRIALING" &&
-      sub.trialEndsAt !== null &&
-      sub.trialEndsAt.getTime() > Date.now());
-  if (!entitled) {
+  // Single entitlement rule shared with the billing core (ACTIVE, or an
+  // unexpired TRIALING) — PAST_DUE/CANCELED/expired-trial all refused.
+  if (!isSubscriptionEntitled(sub.state, sub.trialEndsAt)) {
     throw new TrialExpiredError(sub.trialEndsAt);
   }
 }

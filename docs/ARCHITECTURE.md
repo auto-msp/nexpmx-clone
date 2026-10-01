@@ -51,6 +51,24 @@ Form POST → Server Action
   → audit (metadata only, no question content)
 ```
 
+### Payment webhook (ADR-017)
+
+```
+Razorpay → POST /api/webhooks/razorpay
+  → verify HMAC-SHA256(raw body, RAZORPAY_WEBHOOK_SECRET)  # 400 on failure
+  → zod parse envelope                                     # 400 on garbage
+  → map org (order notes) → load CheckoutSession by order id
+  → BillingEvent ledger (provider,eventType,externalId UNIQUE)
+      duplicate → 200 "duplicate", no side effects
+      unmapped  → 200 "unmapped", stored for ops, never applied
+  → activatePlan / markPastDue via the subscription FSM
+  → audit (ids/plan/seats only) → 200 "processed"
+```
+
+The browser never declares a subscription active: the checkout callback is
+UX-only. All state writes flow through the webhook or the audited OWNER
+fallback action.
+
 ## Trust boundaries
 
 ```
@@ -65,6 +83,9 @@ Internet ── Caddy (TLS, HSTS) ── Next.js (app)
 
 - **Public zone**: marketing routes, /login, /api/health.
 - **Authenticated zone**: (app) routes — session + org membership required.
+- **Billing zone**: /billing + /billing/checkout — session-gated but OUTSIDE
+  the expired-trial gate (an expired org must be able to check out);
+  /api/webhooks/razorpay — HMAC-verified, no session.
 - **Portal zone**: /portal/[token] — capability token, read-only, scoped to one client.
 - **Machine zone**: /api/v1 — hashed API keys, org-scoped, rate-limited.
 - **Data zone**: PostgreSQL — all rows carry `orgId`; access only via scoped queries.

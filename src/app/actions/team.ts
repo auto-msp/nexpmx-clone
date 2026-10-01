@@ -9,6 +9,7 @@ import { requirePermission } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
 import { requireEntitlement } from "@/lib/entitlements";
 import { planOf } from "@/lib/plans";
+import { getOrCreateSubscription } from "@/lib/subscription";
 import { hashToken } from "@/lib/tenancy";
 import { randomBytes } from "node:crypto";
 
@@ -65,6 +66,12 @@ export async function inviteMemberAction(formData: FormData): Promise<void> {
   });
   const plan = planOf(org?.plan);
 
+  // Seat cap comes from the Subscription (purchased seats) when one exists —
+  // seat-based pricing (ADR-017). Falls back to the plan's static maxSeats.
+  const sub = await getOrCreateSubscription(ctx.orgId);
+  const seatCap =
+    sub.state === "ACTIVE" && sub.seats !== null ? sub.seats : plan.maxSeats;
+
   const raw = `bmi_${randomBytes(24).toString("hex")}`;
   const tokenHash = hashToken(raw);
   const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 86_400_000);
@@ -92,7 +99,8 @@ export async function inviteMemberAction(formData: FormData): Promise<void> {
 
         // Seat cap (RULE-ENT-05) — checked inside the same serializable
         // transaction that inserts, so the check cannot go stale (audit F4).
-        if (plan.maxSeats !== null) {
+        // Cap = purchased seats (ACTIVE sub) or plan.maxSeats fallback.
+        if (seatCap !== null) {
           const [used, pending] = await Promise.all([
             tx.membership.count({ where: { orgId: ctx.orgId } }),
             tx.invitation.count({
@@ -103,9 +111,9 @@ export async function inviteMemberAction(formData: FormData): Promise<void> {
               },
             }),
           ]);
-          if (used + pending >= plan.maxSeats) {
+          if (used + pending >= seatCap) {
             throw new Error(
-              `Your ${plan.name} plan allows ${plan.maxSeats} seats (${used + pending} already in use). Upgrade to invite more teammates.`,
+              `Your plan allows ${seatCap} seats (${used + pending} already in use). Raise the seat count from the Billing page.`,
             );
           }
         }

@@ -108,6 +108,8 @@ model Organization {
   invitations     Invitation[]
   subscription    Subscription?
   idempotencyKeys IdempotencyKey[]
+  checkoutSessions CheckoutSession[]
+  billingEvents   BillingEvent[]
 }
 
 enum Plan {
@@ -381,9 +383,9 @@ model IdempotencyKey {
 
 // ─── Billing lifecycle ───────────────────────────────────────────────────────
 // TRIALING state is evidence-backed (account-holder report of a 14-day trial
-// at signup, docs/ASSUMPTIONS.md §8). The checkout/payment steps remain out
-// of scope (KNOWN_LIMITATIONS #2): trials start automatically and plans can
-// still be set manually until a payment rail lands.
+// at signup, docs/ASSUMPTIONS.md §8). Payment rail: Razorpay orders + webhook
+// activation (ADR-017). State transitions are explicit and tested —
+// src/lib/subscription-state.ts is the authoritative table.
 
 enum SubscriptionState {
   TRIALING
@@ -393,17 +395,70 @@ enum SubscriptionState {
 }
 
 model Subscription {
-  id               String            @id @default(cuid())
-  orgId            String            @unique
-  state            SubscriptionState @default(TRIALING)
-  plan             Plan
-  trialEndsAt      DateTime? // set at TRIALING creation; null for non-trial states
-  currentPeriodEnd DateTime? // when billing lands; null until payment rail exists
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  org              Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id                    String            @id @default(cuid())
+  orgId                 String            @unique
+  state                 SubscriptionState @default(TRIALING)
+  plan                  Plan
+  trialEndsAt           DateTime? // set at TRIALING creation; null for non-trial states
+  currentPeriodStart    DateTime? // set at activation/renewal (webhook time)
+  currentPeriodEnd      DateTime? // set at activation/renewal (+30d)
+  seats                 Int? // seats paid for at activation (seat-based pricing)
+  razorpaySubscriptionId String? // provider subscription id, when one exists
+  lastPaymentAt         DateTime? // last captured payment we processed
+  lastPaymentId         String? // provider payment id (payment_xxx)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  org                   Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  checkoutSessions CheckoutSession[]
 
   @@index([orgId, state])
+}
+
+// One checkout attempt = one Razorpay order. Sessions are org-scoped and
+// carry a server-computed quote (plan + seats × price) — the browser never
+// states an amount. Only the webhook (verified signature) completes one.
+enum CheckoutState {
+  CREATED
+  COMPLETED
+  EXPIRED
+}
+
+model CheckoutSession {
+  id              String        @id @default(cuid())
+  orgId           String
+  subscriptionId  String? // owning lifecycle row; nullable for defensive direct org linkage
+  plan            Plan
+  seats           Int
+  amountMinor     Int // server-computed quote: seats × plan price (paise)
+  currency        String        @default("INR")
+  state           CheckoutState @default(CREATED)
+  razorpayOrderId String        @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+  org             Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, state])
+}
+
+// Raw webhook ledger + idempotency: (provider, eventType, externalId) unique
+// so Razorpay's at-least-once redelivery is processed exactly once. Events
+// that cannot be mapped to an org are still stored (orgId null) for ops.
+model BillingEvent {
+  id          String    @id @default(cuid())
+  orgId       String?
+  provider    String    @default("razorpay")
+  eventType   String // e.g. payment.captured, subscription.charged
+  externalId  String // provider entity id (pay_xxx / sub_xxx)
+  payloadJson String // full event body (contains no secrets; redacted keys)
+  processedAt DateTime?
+  receivedAt  DateTime  @default(now())
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, eventType, externalId])
+  @@index([orgId, receivedAt])
 }
 
 // ─── Team invitations ────────────────────────────────────────────────────────

@@ -19,6 +19,7 @@
 | Secrets | Never committed; `.env` git-ignored; API keys stored as SHA-256 hashes; portal/invite tokens hashed for lookup + audit |
 | Uploads | Mime allowlist server-side; random org-scoped storage keys (client names never in paths); strict storage-key regex before any path op; sha256 integrity digest; no bytes in DB |
 | Download links | HMAC-SHA256 (AUTH_SECRET/DOCUMENT_TOKEN_SECRET), 5-min expiry, constant-time compare, bound to documentId+org (+portal token for portal links); session + org re-verified per request |
+| Payment webhooks | HMAC-SHA256 over raw body (RAZORPAY_WEBHOOK_SECRET), constant-time compare, fail-closed; zod envelope validation; exactly-once via BillingEvent unique ledger; org mapping from server-stamped order notes; unmappable events stored but never applied; checkout amounts computed server-side; browser callback can never activate a subscription (ADR-017) |
 | Audit | Append-only AuditLog (actor, action, entity, redacted metadata) |
 | Logging | No secrets/PII; AI questions logged as length only |
 | Deps | Lockfile committed; `npm audit` in CI recommended |

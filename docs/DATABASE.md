@@ -17,6 +17,8 @@ mutations re-verify ownership of any client-supplied foreign key.
 | ApiKey | Engineering addition (not observed on target) | — |
 | AuditLog | Engineering addition (required by our security baseline) | — |
 | Automation | Observed "Automations, 500 runs/mo"; runner not implemented | B (entity), D (runner) |
+| Subscription (billing fields) | Engineering (ADR-017); TRIALING lifecycle evidence-backed (ASSUMPTIONS §8) | — (fields), A (TRIALING) |
+| CheckoutSession / BillingEvent | Engineering addition (ADR-017 payment rail; not observed on target) | — |
 
 Money is stored as integer **minor units** (`amountMinor`, paise) — never floats.
 
@@ -34,6 +36,8 @@ User 1─* Membership *─1 Organization 1─* Client 1─* Project 1─* Task
                           ├─* Automation
                           ├─* Invitation
                           ├─* IdempotencyKey
+                          ├─* CheckoutSession
+                          ├─* BillingEvent
                           └─1 Subscription
 User 1─* Session / Account (Auth.js)
 User 1─* Notification
@@ -47,7 +51,15 @@ Comment: polymorphic-lite — nullable FKs to Decision | Project | Client
 - `ApiKey.keyHash` unique — lookup by SHA-256; raw key never stored.
 - `Invitation.tokenHash` unique — same SHA-256 pattern as API keys; invite
   links are single-use capabilities.
-- `Subscription.orgId` unique — exactly one lifecycle row per org.
+- `Subscription.orgId` unique — exactly one lifecycle row per org. Billing
+  fields (`currentPeriodStart/End`, `seats`, `razorpaySubscriptionId`,
+  `lastPaymentAt/Id`) are written ONLY by signature-verified webhook
+  processing (ADR-017) — never from browser input.
+- `CheckoutSession.razorpayOrderId` unique — one provider order per checkout
+  attempt; rows are org-scoped and carry the server-computed quote.
+- `BillingEvent (provider, eventType, externalId)` unique — webhook
+  redeliveries replay as "duplicate"; the ledger is the exactly-once
+  authority. Unmappable events are stored with `orgId` null for ops.
 - `IdempotencyKey (orgId, scope, key)` unique — retried create submissions
   (same rendered form) replay the original entity instead of duplicating;
   claim and create happen in one serializable transaction. Keys older than

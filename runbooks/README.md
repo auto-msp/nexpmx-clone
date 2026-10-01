@@ -44,6 +44,13 @@ journalctl -u bizmemory -n 100 --no-pager
 
 ## Explicitly out of scope (do not create runbooks for)
 
-Queues, workers, Redis/cache, payments, email delivery, feature flags — none
-of these exist in the current system (verified against the codebase;
+Queues, workers, Redis/cache, email delivery, feature flags — none of these
+exist in the current system (verified against the codebase;
 see `docs/KNOWN_LIMITATIONS.md`).
+
+Payments no longer fall in this list as of 2026-10-01 (ADR-017): a Razorpay
+webhook receiver and checkout exist. Webhook-secret handling is covered in
+`secret-compromise.md`; provider-side incidents (Razorpay dashboard/outage)
+are handled at the provider, with our side degrading to contact-us checkout
+mode when keys are absent. A dedicated payments runbook (failed-webhook
+reconciliation, missed activations) is pending until live keys exist.
