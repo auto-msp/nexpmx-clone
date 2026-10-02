@@ -78,6 +78,7 @@ npm ci --no-audit --no-fund
 # to `db push`, but `migrate deploy` exits 0 on a database with no committed
 # migrations, so the fallback was dead code and provisioning produced a
 # zero-table database that still passed the health gate.
+npx prisma generate
 npx prisma migrate deploy
 # Verify the schema actually landed rather than trusting the exit code.
 npx prisma migrate status
@@ -87,14 +88,26 @@ echo "==> 6/8 systemd service"
 install -m 644 "$APP_DIR/infrastructure/bizmemory.service" /etc/systemd/system/bizmemory.service
 id www-data >/dev/null 2>&1 || useradd --system www-data
 chown -R www-data:www-data "$APP_DIR"
+# ProtectSystem=strict requires every ReadWritePaths entry to exist or the
+# unit exits 226/NAMESPACE. .prisma is a prisma generate output.
+install -d -o www-data -g www-data -m 755 "$APP_DIR/.prisma"
+# www-data must be able to traverse APP_DIR to reach WorkingDirectory.
+chmod 755 "$APP_DIR"
 systemctl daemon-reload
 systemctl enable --now bizmemory
 
 echo "==> 7/8 Caddy site"
 if [[ -n "$DOMAIN" ]]; then
-  sed "s/app.yourdomain.com/$DOMAIN/" "$APP_DIR/infrastructure/Caddyfile" \
-    > /etc/caddy/Caddyfile
-  systemctl reload caddy || systemctl restart caddy
+  if [[ -f /etc/caddy/Caddyfile ]]; then
+    # Never clobber an existing config: on shared hosts Caddy may already be
+    # reverse-proxying other services from a hand-maintained file.
+    echo "    /etc/caddy/Caddyfile exists — NOT overwriting it." >&2
+    echo "    Add a site block for $DOMAIN manually, then reload Caddy." >&2
+  else
+    sed "s/app.yourdomain.com/$DOMAIN/" "$APP_DIR/infrastructure/Caddyfile" \
+      > /etc/caddy/Caddyfile
+    systemctl reload caddy || systemctl restart caddy
+  fi
 else
   echo "    DOMAIN not set — Caddyfile not written. Configure TLS manually."
 fi

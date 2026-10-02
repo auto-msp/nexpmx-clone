@@ -8,6 +8,10 @@ User=www-data
 Group=www-data
 WorkingDirectory=/opt/bizmemory
 EnvironmentFile=/opt/bizmemory/.env
+# PORT must not collide with other apps on a shared host; the default 3000
+# was already taken on the Oracle VM. Override per-deployment.
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
 ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=3
@@ -15,6 +19,9 @@ RestartSec=3
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
+# ProtectSystem=strict makes every ReadWritePaths entry mandatory: systemd
+# fails to start the unit (status=226/NAMESPACE) if a listed path is absent.
+# .prisma only exists after `prisma generate`, so provision it before start.
 ReadWritePaths=/opt/bizmemory/.next /opt/bizmemory/.prisma /opt/bizmemory/node_modules/.prisma /var/lib/bizmemory/documents
 PrivateTmp=true
 
