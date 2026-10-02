@@ -58,8 +58,21 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Push schema to database
-        run: npx prisma db push --skip-generate
+      # Apply committed migrations (NOT `db push`): `migrate deploy` silently
+      # exits 0 with no migrations, which would let a schema-less deploy pass.
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      # Prove the migrations really created the schema. `migrate deploy` exits 0
+      # even when it applies nothing, so assert the tables exist.
+      - name: Verify schema was applied
+        run: |
+          npx prisma migrate status
+          COUNT=$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';")
+          echo "tables in public schema: $COUNT"
+          if [ "$COUNT" -lt 20 ]; then
+            echo "Schema incomplete ($COUNT tables) — migrations did not apply"; exit 1
+          fi
 
       # Unit + integration tests (integration needs the schema pushed above).
       - name: Tests

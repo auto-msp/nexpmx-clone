@@ -74,7 +74,13 @@ fi
 
 echo "==> 5/8 Dependencies + migrations + build"
 npm ci --no-audit --no-fund
-npx prisma migrate deploy 2>/dev/null || npx prisma db push --skip-generate
+# Migrations are the source of truth for schema. Previously this line fell back
+# to `db push`, but `migrate deploy` exits 0 on a database with no committed
+# migrations, so the fallback was dead code and provisioning produced a
+# zero-table database that still passed the health gate.
+npx prisma migrate deploy
+# Verify the schema actually landed rather than trusting the exit code.
+npx prisma migrate status
 npm run build
 
 echo "==> 6/8 systemd service"
