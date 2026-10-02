@@ -27,6 +27,7 @@ Run checks:
 ```bash
 npm run typecheck
 npm test
+npm run test:e2e   # Playwright: needs `npm run build` first (runs `npm run start`)
 npm run build
 curl localhost:3000/api/health
 ```
@@ -46,10 +47,11 @@ curl localhost:3000/api/health
 | Token-authenticated read-only Client Portal | ✅ |
 | REST API v1 with hashed API keys | ✅ |
 | RBAC matrix, audit log, security headers, rate limiting | ✅ |
-| Tests (unit), typecheck, production build, smoke tests | ✅ |
+| Tests (unit, integration, Playwright E2E), typecheck, production build | ✅ |
+| Billing (Razorpay orders + signed webhooks) + self-serve /billing checkout | ✅ |
 
-Not yet implemented: file uploads (schema ready), automations runner,
-billing/payment integration, multi-org switching, E2E tests. See
+Not yet implemented: automations runner, multi-org switching, live
+processor keys/KYC, counsel-reviewed legal pages. See
 `docs/KNOWN_LIMITATIONS.md`.
 
 ## Documentation

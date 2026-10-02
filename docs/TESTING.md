@@ -12,8 +12,8 @@
 | Restore drill | dump → pg_restore into scratch DB → row counts + marker fidelity → documents tarball round-trip → cleanup (validated `runbooks/data-recovery.md`) | ✅ executed 2026-09-30 |
 | Build | `tsc --noEmit` + `next build` (type + route integrity) | ✅ verified (26 routes) |
 | Smoke | health 200, public pages 200, auth gate 307→login, `/documents` gate, invite page states, API 401 without key, download 403 without token | ✅ verified against local prod build + Postgres |
+| E2E (Playwright) | Browser suite over the production build against the dev Postgres (`npm run test:e2e`, 18 tests): middleware gate (anonymous → /login?callbackUrl), session-cookie injection (DB sessions; no Google dependency), sign-out re-gating, public pages; invoice lifecycle through real form controls (create → DRAFT → SENT → PAID, duplicate-number P2002 rejection, cross-org invisibility, issuedAt stamping); billing surface (plan chooser + seat picker + contact-us mode without keys), expired-trial gate links, MEMBER cannot manage billing, signed-webhook activation over live HTTP reopening the workspace, exactly-once redelivery, unsigned-webhook 400 | ✅ 18 tests, `npm run test:e2e` |
 | Security (planned) | RBAC denials via direct action calls, rate-limit trips, upload of disallowed types through the real action | backlog |
-| E2E (planned) | Playwright: login → onboarding → client → project → upload → invoice → AI query → portal | backlog |
 
 ## Conventions
 

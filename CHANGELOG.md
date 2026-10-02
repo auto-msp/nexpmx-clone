@@ -3,6 +3,32 @@
 All notable changes to this project are documented here.
 Format: Keep a Changelog; versioning: SemVer.
 
+## [0.4.0] — 2026-10-02
+
+### Added
+- **Playwright browser E2E suite (KNOWN_LIMITATIONS #7)**: 18 tests over the
+  production build (`npm run test:e2e`) covering the login gate and session
+  lifecycle (middleware redirect shape, DB-session cookie injection,
+  sign-out re-gating), the invoice lifecycle driven through real UI form
+  controls (create → DRAFT → SENT → PAID, duplicate-number rejection,
+  cross-org isolation, issuedAt stamping), and the billing surface
+  (contact-us mode without keys, expired-trial gate, MEMBER RBAC on /billing,
+  signed-webhook activation reopening the workspace, exactly-once
+  redelivery, unsigned-webhook 400). Fixtures seed users/orgs/sessions via
+  Prisma and tear down in FK-safe order — repeatable against the shared dev
+  Postgres.
+- **Legal documents (KNOWN_LIMITATIONS #13 draft)**: full Terms of Service
+  (/terms) and Privacy Policy (/privacy) matching actual product behavior —
+  Google SSO, 14-day trial with read-only lock, seat-based Razorpay billing,
+  locally-grounded AI with no third-party model calls by default, retention
+  windows, India governing law, DPDP/GDPR-style rights. **Not yet
+  counsel-reviewed** — review still required before production launch.
+
+### Changed
+- `npm run test:e2e` / `test:e2e:ui` scripts; `.gitignore` for Playwright
+  artifacts; TESTING.md E2E table row; KNOWN_LIMITATIONS #7 → largely done,
+  #13 → drafted (residual: counsel review).
+
 ## [0.3.0] — 2026-10-01
 
 ### Added (billing — KNOWN_LIMITATIONS #2/#16)
