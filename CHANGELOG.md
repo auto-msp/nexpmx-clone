@@ -3,6 +3,116 @@
 All notable changes to this project are documented here.
 Format: Keep a Changelog; versioning: SemVer.
 
+## [0.5.0] — 2026-10-02
+
+### Added
+- **App surface rebuilt from authorized screenshot evidence (71 captures,
+  2026-10-02)** — see REVERSE_ENGINEERING.md findings 15–26. Structural
+  facts mirrored; all copy/branding remains original (clean-room).
+- **App shell**: left icon rail (Home, Clients, Projects, Proposals,
+  Finance, Comms, AI, CIO, Memory, Docs, Sheets, Setup), per-module
+  filterable subnav with "AI in this domain" quick actions, AI credits
+  meter, focus timer, and a Ctrl+K command palette.
+- **Proposals** (`/proposals`): Draft→Sent→Viewed→Accepted/Rejected
+  pipeline with per-stage value totals, one-click invoice conversion, and
+  `proposal.signed` automation events. Idempotent create, audited
+  transitions.
+- **Comms** (`/comms`): client communication log (email/call/meeting/note,
+  in/out) with filters and an interaction composer.
+- **Business Memory** (`/memory`, `/memory/what-we-know`,
+  `/memory/questions`, `/memory/import`): category-chipped facts with
+  upsert-on-add, rolling "what we know" summary, open/answered question
+  log, and a paste importer (`key: value`, `category|key: value`) with
+  idempotent bulk upserts and per-line skip reporting.
+- **Sheets** (`/sheets`, `/sheets/[id]`): A–Z × 1–100 grid editor with
+  formula bar (=SUM/AVG/MIN/MAX/COUNT, refs, arithmetic, loop detection),
+  formatting toolbar (bold/italic/underline, alignment, ₹/%/#/date,
+  decimals), CSV export, rename; server-side cell validation (256 KB cap,
+  key sanitisation).
+- **AI module** (`/ai`, `/ai/team`, `/ai/skills`, `/ai/automations`): hub
+  with on-duty status; five role-carded virtual employees (Aria, Vikram,
+  Maya, Leo, Sage) with enable/disable and credit rate cards (credits
+  guarded); skills library — 28 ready-made skills across 6 categories with
+  previewable original instructions + custom skills stored as memory;
+  automations — 27 ready-to-use recipes (Money/Delivery/Client care/Team)
+  + custom builder (trigger, action checkboxes, task title, watch scope
+  ALL/CLIENT/PROJECT) with enable/disable/remove.
+- **Automation runner**: pure matcher (unit-tested) + `emitAutomationEvent`
+  dispatcher wired into invoice.paid, proposal.signed, project.created,
+  task.completed; effects: founder notifications (OWNER/ADMIN), client
+  notifications (in-app, comms-logged fallback), follow-up task creation.
+- **CIO** (`/cio`): executive brief — overdue receivables, pipeline
+  awaiting decision, stalled/empty projects, unassigned tasks, open
+  questions, memory-grounded summary.
+- **Reports** (`/reports`): collected YTD/month/all-time, outstanding,
+  overdue, per-client revenue, decisions-by-member.
+- **Home command center revamp** (`/dashboard`): greeting, attention
+  queue, revenue snapshot, AI team status, quick links.
+- **Settings expansion**: `/settings/team` (team directory, seat meter,
+  invite flow), `/settings/plan` (usage meters), `/settings/company`
+  (Company & GST profile, format-checked GSTIN), `/settings/notifications`
+  (org toggles + feed), `/settings/privacy` (data inventory),
+  `/settings/audit` (paginated audit log with action filter); settings hub
+  now links all sub-pages.
+- **Help center** (`/help`): public FAQ.
+- **Prisma**: Proposal, CommsMessage, MemoryFact, MemoryQuestion, Sheet,
+  AiEmployee models; Automation extended (effects booleans, task title,
+  watch scope/targets, lastFiredAt); Organization gains GST/address and
+  notification-preference fields.
+- **Tests**: `tests/modules.test.ts` — 47 unit tests over the new pure
+  helpers (memory parser, sheet engine/CSV, automation matcher, AI team
+  pricing, skills catalog, server-side cell validation). Suite total 128
+  passing.
+- **Transactional email (KNOWN_LIMITATIONS #9)**: provider-agnostic mail
+  layer (`src/lib/mail.ts`) — Resend REST integration via plain `fetch`
+  (no SDK), 10s timeout, null provider when `RESEND_API_KEY` is absent so
+  the app never blocks on email. Branded HTML/text templates with escaped
+  interpolation for team invites and automation notifications; invite flow
+  now sends the link best-effort and audits `member.invite_emailed` /
+  `member.invite_email_failed`; automation dispatch emails founders
+  (per-org preference gates) with client-email fallback. `appUrl()` builds
+  absolute links from `AUTH_URL`/`APP_URL`.
+- **GST on invoices (KNOWN_LIMITATIONS #10)**: `Invoice.gstRateBps`
+  (validated ∈ {0, 5, 12, 18, 28%}), `placeOfSupply`, `gstinSnapshot`
+  stamped at creation. Tax split computed in `src/lib/gst.ts` (amounts
+  stored NET in paise; intra-state → CGST+SGST at half rate each,
+  inter-state → IGST; half-up rounding per component). Invoices page shows
+  Net/GST/Gross columns with rate + place-of-supply composer fields;
+  client-portal invoices show the per-component breakdown and a "Pay via
+  UPI" deep link (`upi://pay?…`) built from the org's UPI VPA + payee name
+  (new Org fields, format-checked VPA in `/settings/company`).
+- **E2E coverage extended (KNOWN_LIMITATIONS #7)**: Playwright suite 18 →
+  26 tests — new modules spec over the v0.5.0 surface: proposals lifecycle
+  end-to-end (create → send → accept → invoice conversion with DB-verified
+  write), business memory (add/import/ask+answer), sheets (formula bar
+  edit, computed value, save + reload persistence), automations (recipe
+  install + real dispatch on invoice PAID verifying the notification
+  payload), comms log + filters, company GST profile save + malformed
+  GSTIN rejection, team directory, CIO brief.
+- **Domain setup guide**: `docs/DOMAIN_SETUP.md` — recommended subdomain
+  `app.nexpmx.com` (A record → VM, DNS-only during first cert issuance),
+  Caddy TLS, Google OAuth redirect + `AUTH_URL`, Resend domain
+  verification, Razorpay webhook URL, verification curls, troubleshooting.
+
+### Changed
+- RBAC matrix gains `memory:write` and `comms:write` (OWNER/ADMIN/MANAGER
+  and MEMBER where appropriate).
+- KNOWN_LIMITATIONS #6 (automations) largely done with residuals; #10
+  updated (GST profile exists, invoice tax fields still pending); #12
+  notes structural-vs-visual parity scope; new 5a/12a residuals recorded.
+- CSP: strict `script-src` retained for production; dev adds `'unsafe-eval'`
+  because `next dev` evaluates modules through eval() — without it, React
+  hydration dies with EvalError in development only.
+- Sheets formulas are CSP-safe: arithmetic evaluation uses a small
+  recursive-descent parser instead of `new Function()`, which the strict
+  Content-Security-Policy forbids in the browser.
+- `.env.example` gains `RESEND_API_KEY`, `MAIL_FROM_NAME`,
+  `MAIL_FROM_ADDRESS`.
+- Tests: `tests/gst-mail.test.ts` — 16 unit tests over GST math (rate
+  guard, intra/inter-state split, half-up rounding, paise formatting, UPI
+  link shape) and mail (plausible-address guard, template escaping). Suite
+  total 144 passing.
+
 ## [0.4.0] — 2026-10-02
 
 ### Added

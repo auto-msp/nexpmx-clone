@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { rateLimit, fail } from "@/lib/api";
 import { formatInr } from "@/lib/plans";
 import { signDownloadToken } from "@/lib/documents";
+import { gstBreakdown, gstRateLabel, formatPaise, upiPaymentLink } from "@/lib/gst";
 import { Badge, Card, EmptyState } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default async function ClientPortalPage({
   const client = await prisma.client.findUnique({
     where: { portalToken: token },
     include: {
-      org: { select: { name: true, brandColor: true } },
+      org: { select: { name: true, brandColor: true, state: true, upiId: true, upiPayeeName: true } },
       projects: {
         where: { status: { not: "COMPLETED" } },
         include: { _count: { select: { tasks: true } } },
@@ -133,32 +134,57 @@ export default async function ClientPortalPage({
           {client.invoices.length === 0 ? (
             <EmptyState title="No invoices yet" />
           ) : (
-            client.invoices.map((inv) => (
-              <Card key={inv.id}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-medium">{inv.number}</h3>
-                    <p className="text-xs text-muted">
-                      {inv.dueAt ? `Due ${inv.dueAt.toISOString().slice(0, 10)}` : "No due date"}
-                    </p>
+            client.invoices.map((inv) => {
+              const gst = gstBreakdown(inv.amountMinor, inv.gstRateBps, client.org.state, inv.placeOfSupply);
+              const payLink =
+                inv.status !== "PAID" && client.org.upiId
+                  ? upiPaymentLink({
+                      vpa: client.org.upiId,
+                      payeeName: client.org.upiPayeeName || client.org.name,
+                      amountMinor: gst.grossMinor,
+                      note: `Invoice ${inv.number}`,
+                    })
+                  : null;
+              return (
+                <Card key={inv.id}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-medium">{inv.number}</h3>
+                      <p className="text-xs text-muted">
+                        {inv.dueAt ? `Due ${inv.dueAt.toISOString().slice(0, 10)}` : "No due date"}
+                        {inv.gstRateBps > 0 ? (
+                          <> · Net {formatInr(inv.amountMinor)} + {gstRateLabel(inv.gstRateBps)} {" "}
+                            {gst.intraState ? "CGST+SGST" : "IGST"} = {formatPaise(gst.taxMinor)}
+                          </>
+                        ) : null}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold">{formatPaise(gst.grossMinor)}</span>
+                      <Badge
+                        tone={
+                          inv.status === "PAID"
+                            ? "success"
+                            : inv.status === "OVERDUE"
+                              ? "danger"
+                              : "brand"
+                        }
+                      >
+                        {inv.status}
+                      </Badge>
+                      {payLink ? (
+                        <a
+                          href={payLink}
+                          className="rounded-[var(--radius-control)] bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-strong"
+                        >
+                          Pay via UPI
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold">{formatInr(inv.amountMinor)}</span>
-                    <Badge
-                      tone={
-                        inv.status === "PAID"
-                          ? "success"
-                          : inv.status === "OVERDUE"
-                            ? "danger"
-                            : "brand"
-                      }
-                    >
-                      {inv.status}
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </div>
       </section>

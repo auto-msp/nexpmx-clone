@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireApiContext } from "@/lib/api";
 import { requirePermission } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
+import { emitAutomationEvent } from "./automations";
 
 const createProjectSchema = z.object({
   name: z.string().trim().min(1, "Project name is required").max(120),
@@ -46,6 +47,13 @@ export async function createProject(formData: FormData) {
     entity: "Project",
     entityId: project.id,
     meta: { name: project.name },
+  });
+
+  await emitAutomationEvent({
+    trigger: "project.created",
+    subjectTitle: project.name,
+    clientId,
+    projectId: project.id,
   });
 
   revalidatePath("/projects");
@@ -132,5 +140,15 @@ export async function setTaskStatus(formData: FormData) {
   if (!task) throw new Error("Task not found");
 
   await prisma.task.update({ where: { id }, data: { status: status as never } });
+
+  if (status === "DONE" && task.status !== "DONE") {
+    await emitAutomationEvent({
+      trigger: "task.completed",
+      subjectTitle: task.title,
+      projectId: task.projectId,
+      clientId: null,
+    });
+  }
+
   revalidatePath("/projects");
 }

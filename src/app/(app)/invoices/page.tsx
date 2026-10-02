@@ -6,6 +6,7 @@ import { Badge, Button, Card, EmptyState, Field, Input, SectionTitle, Select, Ta
 import { createInvoice, transitionInvoice } from "@/app/actions/invoices";
 import { formatInr } from "@/lib/plans";
 import { newIdempotencyKey } from "@/lib/idempotency";
+import { gstBreakdown, gstRateLabel, formatPaise } from "@/lib/gst";
 
 export const metadata: Metadata = { title: "Invoices", robots: { index: false } };
 
@@ -20,11 +21,19 @@ export default async function InvoicesPage() {
   const session = await auth();
   const ctx = await getOrgContext(session!.user!.id);
 
-  const invoices = await prisma.invoice.findMany({
-    where: { orgId: ctx!.orgId },
-    orderBy: { createdAt: "desc" },
-    include: { client: { select: { name: true } } },
-  });
+  const [invoices, org] = await Promise.all([
+    prisma.invoice.findMany({
+      where: { orgId: ctx!.orgId },
+      orderBy: { createdAt: "desc" },
+      include: { client: { select: { name: true } } },
+    }),
+    prisma.organization.findUnique({
+      where: { id: ctx!.orgId },
+      select: { gstin: true, state: true, upiId: true },
+    }),
+  ]);
+  const sellerState = org?.state ?? null;
+  const hasGstin = Boolean(org?.gstin);
 
   const clients = await prisma.client.findMany({
     where: { orgId: ctx!.orgId, status: "ACTIVE" },
@@ -72,6 +81,23 @@ export default async function InvoicesPage() {
           <Field label="Due date">
             <Input name="dueAt" type="date" />
           </Field>
+          <Field label="GST rate">
+            <Select name="gstRateBps" defaultValue="0">
+              <option value="0">0% — exempt / B2C unregistered</option>
+              <option value="500">5%</option>
+              <option value="1200">12%</option>
+              <option value="1800">18%</option>
+              <option value="2800">28%</option>
+            </Select>
+          </Field>
+          <Field label="Place of supply">
+            <Input name="placeOfSupply" maxLength={80} placeholder={sellerState ?? "State name"} />
+          </Field>
+          <div className="sm:col-span-4 text-xs text-muted">
+            Amount is NET of tax. {hasGstin ? "" : "Set your GSTIN in Settings → Company & GST for tax invoices."}
+            {" "}Intra-state supply (place of supply = {sellerState ?? "your state"}) splits CGST+SGST;
+            otherwise IGST applies.
+          </div>
           <div className="sm:col-span-4">
             <Button type="submit">Create draft</Button>
           </div>
@@ -81,31 +107,44 @@ export default async function InvoicesPage() {
       {invoices.length === 0 ? (
         <EmptyState title="No invoices yet" hint="Create a draft above, then send it." />
       ) : (
-        <Table head={["Number", "Client", "Amount", "Due", "Status", "Actions"]}>
-          {invoices.map((inv) => (
-            <tr key={inv.id}>
-              <td className="px-4 py-3 font-medium">{inv.number}</td>
-              <td className="px-4 py-3 text-muted">{inv.client.name}</td>
-              <td className="px-4 py-3">{formatInr(inv.amountMinor)}</td>
-              <td className="px-4 py-3 text-muted">
-                {inv.dueAt ? inv.dueAt.toISOString().slice(0, 10) : "—"}
-              </td>
-              <td className="px-4 py-3">
-                <Badge tone={TONE[inv.status] ?? "neutral"}>{inv.status}</Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex justify-end gap-2">
-                  {(nextActions[inv.status] ?? []).map((a) => (
-                    <form key={a.to} action={transitionInvoice}>
-                      <input type="hidden" name="id" value={inv.id} />
-                      <input type="hidden" name="status" value={a.to} />
-                      <Button variant="secondary" type="submit">{a.label}</Button>
-                    </form>
-                  ))}
-                </div>
-              </td>
-            </tr>
-          ))}
+        <Table head={["Number", "Client", "Net", "GST", "Gross", "Due", "Status", "Actions"]}>
+          {invoices.map((inv) => {
+            const gst = gstBreakdown(inv.amountMinor, inv.gstRateBps, sellerState, inv.placeOfSupply);
+            return (
+              <tr key={inv.id}>
+                <td className="px-4 py-3 font-medium">{inv.number}</td>
+                <td className="px-4 py-3 text-muted">{inv.client.name}</td>
+                <td className="px-4 py-3">{formatInr(inv.amountMinor)}</td>
+                <td className="px-4 py-3 text-muted">
+                  {inv.gstRateBps > 0 ? (
+                    <>
+                      {formatPaise(gst.taxMinor)} <span className="text-xs">({gstRateLabel(inv.gstRateBps)}{gst.intraState ? " CGST+SGST" : " IGST"})</span>
+                    </>
+                  ) : (
+                    <span className="text-xs">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 font-medium">{formatPaise(gst.grossMinor)}</td>
+                <td className="px-4 py-3 text-muted">
+                  {inv.dueAt ? inv.dueAt.toISOString().slice(0, 10) : "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge tone={TONE[inv.status] ?? "neutral"}>{inv.status}</Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex justify-end gap-2">
+                    {(nextActions[inv.status] ?? []).map((a) => (
+                      <form key={a.to} action={transitionInvoice}>
+                        <input type="hidden" name="id" value={inv.id} />
+                        <input type="hidden" name="status" value={a.to} />
+                        <Button variant="secondary" type="submit">{a.label}</Button>
+                      </form>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </Table>
       )}
     </div>

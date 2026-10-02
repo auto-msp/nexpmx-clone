@@ -19,6 +19,7 @@ const PUBLIC_PATHS = new Set([
   "/terms",
   "/privacy",
   "/solutions/client-portal",
+  "/help",
 ]);
 
 function isPublic(pathname: string): boolean {

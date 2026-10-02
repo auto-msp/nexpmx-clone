@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getOrgContext } from "@/lib/tenancy";
@@ -7,7 +8,15 @@ import { planOf } from "@/lib/plans";
 import { getOrCreateSubscription, subscriptionView } from "@/lib/subscription";
 import { Badge, Button, Card, Field, Input, SectionTitle, Select, Table } from "@/components/ui";
 import { generateApiKeyAction } from "@/app/actions/settings";
-import { inviteMemberAction } from "@/app/actions/team";
+
+const SETTINGS_SECTIONS = [
+  { href: "/settings/team", label: "Team directory", desc: "Members, roles, invitations, seats" },
+  { href: "/settings/plan", label: "Plan & usage", desc: "Current plan, meters, what is left" },
+  { href: "/settings/company", label: "Company & GST", desc: "Legal identity on invoices" },
+  { href: "/settings/notifications", label: "Notifications", desc: "Org-wide event preferences" },
+  { href: "/settings/privacy", label: "Data & privacy", desc: "Data inventory and protections" },
+  { href: "/settings/audit", label: "Audit log", desc: "Every mutation, filterable" },
+];
 
 export const metadata: Metadata = { title: "Settings", robots: { index: false } };
 
@@ -47,6 +56,19 @@ export default async function SettingsPage() {
         <p className="mt-1 text-sm text-muted">Workspace, plan and security.</p>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {SETTINGS_SECTIONS.map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-brand"
+          >
+            <div className="text-sm font-medium">{s.label}</div>
+            <div className="mt-0.5 text-xs text-muted">{s.desc}</div>
+          </Link>
+        ))}
+      </div>
+
       <Card>
         <SectionTitle>Workspace</SectionTitle>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
@@ -81,8 +103,6 @@ export default async function SettingsPage() {
         </Card>
       ) : null}
 
-      <TeamSection orgId={ctx!.orgId} role={ctx!.role} />
-
       <Card>
         <SectionTitle>API access</SectionTitle>
         <p className="mt-2 text-sm text-muted">
@@ -97,7 +117,6 @@ export default async function SettingsPage() {
             Generate new API key
           </button>
         </form>
-        <ApiKeyList orgId={ctx!.orgId} />
       </Card>
 
       <Card>
@@ -119,96 +138,5 @@ export default async function SettingsPage() {
         </div>
       </Card>
     </div>
-  );
-}
-
-async function TeamSection({ orgId, role }: { orgId: string; role: string }) {
-  const [members, pending] = await Promise.all([
-    prisma.membership.findMany({
-      where: { orgId },
-      orderBy: { createdAt: "asc" },
-      include: { user: { select: { name: true, email: true } } },
-    }),
-    prisma.invitation.findMany({
-      where: { orgId, status: "PENDING", expiresAt: { gt: new Date() } },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
-  return (
-    <Card>
-      <SectionTitle>Team</SectionTitle>
-      <div className="mt-4">
-        <Table head={["Member", "Role", "Since"]}>
-          {members.map((m) => (
-            <tr key={m.id}>
-              <td className="px-4 py-2.5">
-                <div className="font-medium">{m.user.name ?? "—"}</div>
-                <div className="text-xs text-muted">{m.user.email}</div>
-              </td>
-              <td className="px-4 py-2.5"><Badge tone="neutral">{m.role}</Badge></td>
-              <td className="px-4 py-2.5 text-muted">{m.createdAt.toISOString().slice(0, 10)}</td>
-            </tr>
-          ))}
-        </Table>
-      </div>
-      {pending.length > 0 ? (
-        <div className="mt-6">
-          <h3 className="text-sm font-medium">Pending invitations</h3>
-          <ul className="mt-2 space-y-1.5 text-sm text-muted">
-            {pending.map((i) => (
-              <li key={i.id}>
-                {i.email} — <Badge tone="warn">{i.role}</Badge> · expires{" "}
-                {i.expiresAt.toISOString().slice(0, 10)}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      <InviteForm orgId={orgId} role={role} seatUsed={members.length} />
-    </Card>
-  );
-}
-
-function InviteForm({ orgId, role, seatUsed }: { orgId: string; role: string; seatUsed: number }) {
-  const canInvite = role === "OWNER" || role === "ADMIN";
-  if (!canInvite) {
-    return <p className="mt-6 text-xs text-muted">Only owners and admins can invite teammates.</p>;
-  }
-  return (
-    <form action={inviteMemberAction} className="mt-6 flex flex-wrap items-end gap-3">
-      <div className="min-w-48 flex-1">
-        <Field label="Teammate email">
-          <Input name="email" type="email" required maxLength={200} placeholder="teammate@studio.com" />
-        </Field>
-      </div>
-      <div className="w-40">
-        <Field label="Role">
-          <Select name="role" defaultValue="MEMBER">
-            <option value="MEMBER">Member</option>
-            <option value="MANAGER">Manager</option>
-            <option value="ADMIN">Admin</option>
-          </Select>
-        </Field>
-      </div>
-      <Button type="submit">Invite</Button>
-    </form>
-  );
-}
-
-async function ApiKeyList({ orgId }: { orgId: string }) {
-  const keys = await prisma.apiKey.findMany({
-    where: { orgId, revokedAt: null },
-    orderBy: { createdAt: "desc" },
-  });
-  if (keys.length === 0) return null;
-  return (
-    <ul className="mt-4 space-y-1.5 text-sm text-muted">
-      {keys.map((k) => (
-        <li key={k.id}>
-          <span className="font-mono text-text">{k.prefix}…</span> created{" "}
-          {k.createdAt.toISOString().slice(0, 10)}
-        </li>
-      ))}
-    </ul>
   );
 }

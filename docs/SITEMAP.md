@@ -39,7 +39,28 @@ standard SaaS architecture — see `ASSUMPTIONS.md`.
 | `/decisions` | Dynamic | Session | Decision log | Inferred (B) |
 | `/assistant` | Dynamic | Session | Grounded AI Q&A + credits | Inferred (B) |
 | `/settings` | Dynamic | Session | Workspace, team, API keys, audit view | Assumed (C) |
-| `/documents` | Dynamic | Session | Document Hub: upload/download, storage meter | Inferred (B) |
+| `/documents` | Dynamic | Session | Document Hub: upload/download, storage meter | Inferred (B); UI structure observed (A, 2026-10-02) |
+| `/proposals` | Dynamic | Session | Proposal pipeline: Draft→Sent→Viewed→Accepted/Rejected, stage totals, invoice hand-off | Observed (A, screenshots) |
+| `/comms` | Dynamic | Session | Client comms log: email/call/meeting/note, direction + channel filters | Observed (A, screenshots) |
+| `/memory` | Dynamic | Session | Business memory: facts, categories, add/archive | Observed (A, screenshots) |
+| `/memory/what-we-know` | Dynamic | Session | Rolling memory summary grouped by category | Observed (A, screenshots) |
+| `/memory/questions` | Dynamic | Session | Memory questions: ask, answer, dismiss | Observed (A, screenshots) |
+| `/memory/import` | Dynamic | Session | Paste import (key: value / category\|key: value) | Observed (A, screenshots) |
+| `/sheets` | Dynamic | Session | Spreadsheet list + create | Observed (A, screenshots) |
+| `/sheets/[sheetId]` | Dynamic | Session | Grid editor A–Z × 1–100, formulas (SUM/AVG/MIN/MAX/COUNT), CSV export | Observed (A, screenshots) |
+| `/ai` | Dynamic | Session | AI module hub: team status, credits, cards | Observed (A, screenshots) |
+| `/ai/team` | Dynamic | Session | AI team: five virtual employees, enable/disable, rate card | Observed (A, screenshots) |
+| `/ai/skills` | Dynamic | Session | Skills library: ready-made (6 categories) + custom | Observed (A, screenshots) |
+| `/ai/automations` | Dynamic | Session | Automations: recipe catalog + custom builder + enable/disable | Observed (A, screenshots) |
+| `/cio` | Dynamic | Session | CIO executive brief: watchlists + generated summary | Observed (A, screenshots) |
+| `/reports` | Dynamic | Session | Revenue, client revenue, team reports | Observed (A, screenshots) |
+| `/settings/team` | Dynamic | Session (OWNER/ADMIN to invite) | Team directory: members, seats, invites | Observed (A, screenshots) |
+| `/settings/plan` | Dynamic | Session | Plan & usage meters | Observed (A, screenshots) |
+| `/settings/company` | Dynamic | Session (OWNER/ADMIN) | Company & GST profile | Observed (A, screenshots) |
+| `/settings/notifications` | Dynamic | Session (OWNER/ADMIN) | Org notification preferences + feed | Observed (A, screenshots) |
+| `/settings/privacy` | Dynamic | Session | Data inventory & protections | Observed (A, screenshots) |
+| `/settings/audit` | Dynamic | Session | Full audit log with pagination + action filter | Engineering addition |
+| `/help` | Static | Public | Help center FAQ | Observed (A, screenshots) |
 | `/billing` | Dynamic | Session (works while gate active) | Plan chooser + checkout entry; reachable from the expired-trial gate | Engineering addition (ADR-017) |
 | `/billing/checkout` | Dynamic | Session (org-scoped order) | Razorpay Checkout host page | Engineering addition (ADR-017) |
 | `/invite/[token]` | Dynamic | Invite token | Invitation acceptance (seat-checked) | Engineering addition |

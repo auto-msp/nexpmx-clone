@@ -9,6 +9,8 @@ import { audit } from "@/lib/audit";
 import { canTransition, nextActionsFor } from "@/lib/invoice-state";
 import { requireEntitlement } from "@/lib/entitlements";
 import { withIdempotency } from "@/lib/idempotency";
+import { emitAutomationEvent } from "./automations";
+import { isGstRateBps } from "@/lib/gst";
 
 const createInvoiceSchema = z.object({
   clientId: z.string().trim().min(1, "Client is required"),
@@ -20,6 +22,8 @@ const createInvoiceSchema = z.object({
     .regex(/^[A-Za-z0-9_-]+$/, "Numbers may only contain letters, digits, - and _"),
   amount: z.coerce.number().positive("Amount must be positive").max(100_000_000),
   dueAt: z.string().trim().optional(),
+  gstRateBps: z.coerce.number().int().default(0),
+  placeOfSupply: z.string().trim().max(80).optional(),
 });
 
 // Explicit state machine — invalid transitions are rejected
@@ -35,9 +39,14 @@ export async function createInvoice(formData: FormData) {
     number: formData.get("number"),
     amount: formData.get("amount"),
     dueAt: formData.get("dueAt") || undefined,
+    gstRateBps: formData.get("gstRateBps") || 0,
+    placeOfSupply: formData.get("placeOfSupply") || undefined,
   });
   if (!parsed.success) {
     throw new Error(parsed.error.issues.map((i) => i.message).join("; "));
+  }
+  if (!isGstRateBps(parsed.data.gstRateBps)) {
+    throw new Error("Invalid GST rate — choose 0, 5, 12, 18 or 28%");
   }
 
   const client = await prisma.client.findFirst({
@@ -55,6 +64,13 @@ export async function createInvoice(formData: FormData) {
     throw new Error("Your session form expired. Reload the page and try again.");
   }
 
+  // Snapshot the seller GSTIN at creation so later org-profile edits never
+  // rewrite history on issued invoices.
+  const orgProfile = await prisma.organization.findUnique({
+    where: { id: ctx.orgId },
+    select: { gstin: true },
+  });
+
   const outcome = await withIdempotency(
     ctx.orgId,
     "invoice.create",
@@ -68,6 +84,9 @@ export async function createInvoice(formData: FormData) {
           amountMinor,
           status: "DRAFT",
           dueAt: parsed.data.dueAt ? new Date(parsed.data.dueAt) : null,
+          gstRateBps: parsed.data.gstRateBps,
+          placeOfSupply: parsed.data.placeOfSupply ?? null,
+          gstinSnapshot: orgProfile?.gstin ?? null,
         },
         select: { id: true },
       }),
@@ -121,6 +140,15 @@ export async function transitionInvoice(formData: FormData) {
     entityId: id,
     meta: { from: invoice.status, to: next },
   });
+
+  if (next === "PAID" && invoice.status !== "PAID") {
+    await emitAutomationEvent({
+      trigger: "invoice.paid",
+      subjectTitle: invoice.number,
+      clientId: invoice.clientId,
+      projectId: null,
+    });
+  }
 
   revalidatePath("/invoices");
 }

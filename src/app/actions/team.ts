@@ -12,6 +12,7 @@ import { planOf } from "@/lib/plans";
 import { getOrCreateSubscription } from "@/lib/subscription";
 import { hashToken } from "@/lib/tenancy";
 import { randomBytes } from "node:crypto";
+import { getMailProvider, inviteEmail, appUrl } from "@/lib/mail";
 
 /**
  * Team invitations (KNOWN_LIMITATIONS #3 / #9).
@@ -156,6 +157,8 @@ export async function inviteMemberAction(formData: FormData): Promise<void> {
   // One-time display: the raw token is handed back to the inviting admin via
   // a short-lived httpOnly cookie that the settings page reads and clears —
   // the same show-once contract as API keys. Never persisted in plaintext.
+  // The link is shown EVEN WHEN email is configured, so delivery failure
+  // never blocks onboarding.
   const cookieStore = await cookies();
   cookieStore.set("bm_invite_link", raw, {
     httpOnly: true,
@@ -165,7 +168,47 @@ export async function inviteMemberAction(formData: FormData): Promise<void> {
     maxAge: 60,
   });
 
+  // Email delivery (KNOWN_LIMITATIONS #9): best-effort. A failure here is
+  // logged and audited but never fails the invite — the admin already has
+  // the one-time link as fallback.
+  try {
+    const inviter = await prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { name: true },
+    });
+    const orgRow = await prisma.organization.findUnique({
+      where: { id: ctx.orgId },
+      select: { name: true },
+    });
+    const mail = getMailProvider();
+    const tpl = inviteEmail({
+      inviterName: inviter?.name ?? "A teammate",
+      orgName: orgRow?.name ?? "the workspace",
+      roleName: role,
+      inviteUrl: `${appUrl()}/invite/${raw}`,
+      expiresOn: expiresAt.toISOString().slice(0, 10),
+    });
+    const mailResult = await mail.send({
+      to: email,
+      subject: tpl.subject,
+      html: tpl.html,
+      text: tpl.text,
+      template: "invite",
+    });
+    await audit({
+      orgId: ctx.orgId,
+      actorId: ctx.userId,
+      action: mailResult.sent ? "member.invite_emailed" : "member.invite_email_failed",
+      entity: "Invitation",
+      entityId: result.inviteId,
+      meta: { provider: mailResult.provider, role },
+    });
+  } catch (err) {
+    console.error("[team] invite email failed (non-fatal)", err);
+  }
+
   revalidatePath("/settings");
+  revalidatePath("/settings/team");
 }
 
 export async function revokeInvitationAction(formData: FormData): Promise<void> {

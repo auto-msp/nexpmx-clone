@@ -95,6 +95,25 @@ model Organization {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  // Company profile (Setup → Company & GST). Optional until the operator
+  // completes it; invoice composer surfaces it for GST-aligned line items.
+  gstin        String?
+  addressLine  String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String   @default("India")
+  // Payments: UPI VPA for invoice payment links (rendered as upi:// intent).
+  upiId        String?
+  upiPayeeName String?
+
+  // Notification preferences (Setup → Notifications). All default-on for
+  // trial orgs; toggles are org-wide and audited when changed.
+  notifyPayments   Boolean @default(true)
+  notifyProposals  Boolean @default(true)
+  notifyMilestones Boolean @default(true)
+  notifyWeeklyDigest Boolean @default(true)
+
   memberships     Membership[]
   clients         Client[]
   projects        Project[]
@@ -102,6 +121,12 @@ model Organization {
   decisions       Decision[]
   documents       Document[]
   automations     Automation[]
+  proposals       Proposal[]
+  commsMessages   CommsMessage[]
+  memoryFacts     MemoryFact[]
+  memoryQuestions MemoryQuestion[]
+  sheets          Sheet[]
+  aiEmployees     AiEmployee[]
   auditLogs       AuditLog[]
   usageEvents     UsageEvent[]
   apiKeys         ApiKey[]
@@ -151,6 +176,8 @@ model Client {
   documents Document[]
   decisions Decision[]
   comments  Comment[]
+  proposals Proposal[]
+  commsMessages CommsMessage[]
 
   @@index([orgId, status])
 }
@@ -212,9 +239,14 @@ model Invoice {
   orgId       String
   clientId    String
   number      String
-  amountMinor Int // minor units (paise) — never store money as float
+  amountMinor Int // minor units (paise) — never store money as float; NET of tax
   currency    String        @default("INR")
   status      InvoiceStatus @default(DRAFT)
+  // GST fields (India): rate in basis points of NET (0/500/1200/1800/2800),
+  // place of supply state name, and the seller GSTIN snapshot at issue time.
+  gstRateBps  Int           @default(0)
+  placeOfSupply String?
+  gstinSnapshot String?
   issuedAt    DateTime?
   dueAt       DateTime?
   createdAt   DateTime      @default(now())
@@ -351,15 +383,159 @@ model Automation {
   id         String       @id @default(cuid())
   orgId      String
   name       String
-  enabled    Boolean      @default(false)
-  trigger    String // typed keys: invoice.created, task.done, decision.created
-  action     String // typed keys: notify, create_task
+  enabled    Boolean  @default(false)
+  trigger    String // typed keys: invoice.paid, proposal.signed, project.created, task.completed, milestone.completed (see src/lib/automations.ts)
+  notifyFounders Boolean @default(false)
+  notifyClient   Boolean @default(false)
+  createTask     Boolean @default(false)
+  taskTitle      String?
+  watchScope     String  @default("ALL") // ALL | CLIENT | PROJECT
+  watchClientId  String?
+  watchProjectId String?
+  lastFiredAt    DateTime?
   configJson String       @default("{}")
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId])
+}
+
+// ─── Proposals (sales pipeline) ─────────────────────────────────────────────
+// Screenshot evidence: pipeline board with Draft/Sent/Viewed/Accepted/Rejected
+// columns, value totals per stage, and a signed→invoice hand-off (the
+// "Raise the first invoice when a proposal is signed" automation).
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+}
+
+model Proposal {
+  id          String         @id @default(cuid())
+  orgId       String
+  clientId    String?
+  title       String
+  amountMinor Int            @default(0) // minor units (paise), mirrors Invoice
+  currency    String         @default("INR")
+  status      ProposalStatus @default(DRAFT)
+  notes       String?
+  sentAt      DateTime?
+  decidedAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  org         Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client      Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, status])
+  @@index([clientId])
+}
+
+// ─── Comms (client communication log) ───────────────────────────────────────
+// Screenshot evidence: unified thread per client (email/MEETING/CALL/NOTE),
+// composer + "log an interaction" entry, filter by direction.
+
+model CommsMessage {
+  id        String   @id @default(cuid())
+  orgId     String
+  clientId  String?
+  direction String   @default("OUT") // OUT | IN
+  channel   String   @default("EMAIL") // EMAIL | CALL | MEETING | NOTE
+  subject   String
+  body      String?
+  authorId  String?
+  sentAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, sentAt])
+  @@index([orgId, clientId])
+}
+
+// ─── Business Memory (facts, questions, import) ────────────────────────────
+// Screenshot evidence: Business Memory list with category chips + add form;
+// "What we know" rolling summary; "Memory questions" suggestion log with
+// answered state; a paste-import flow (``key: value'' lines).
+
+enum MemoryFactStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model MemoryFact {
+  id        String           @id @default(cuid())
+  orgId     String
+  category  String           @default("general")
+  factKey   String
+  value     String
+  status    MemoryFactStatus @default(ACTIVE)
+  authorId  String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  org       Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, factKey])
+  @@index([orgId, category, status])
+}
+
+enum MemoryQuestionState {
+  OPEN
+  ANSWERED
+}
+
+model MemoryQuestion {
+  id        String              @id @default(cuid())
+  orgId     String
+  question  String
+  answer    String?
+  state     MemoryQuestionState @default(OPEN)
+  askerId   String?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  org       Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, state, createdAt])
+}
+
+// ─── Sheets (spreadsheets) ──────────────────────────────────────────────────
+// Screenshot evidence: workbook list with empty-state, grid editor with
+// toolbar (bold/align/₹/%, filter, freeze), formula bar with fx, Export,
+// Share. Cells stored sparsely as JSON keyed "A1"-style.
+
+model Sheet {
+  id        String   @id @default(cuid())
+  orgId     String
+  title     String
+  cellsJson String   @default("{}")
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, updatedAt])
+}
+
+// ─── AI team (virtual employees) ────────────────────────────────────────────
+// Screenshot evidence: AI Team page with role cards (Aria the Project
+// Manager, Vikram Finance, Maya Operations, Leo Client Success, Sage Sales),
+// each with an optional AI Credits price and "What I own" task list; Skills
+// cards show "Taught to <names>".
+
+model AiEmployee {
+  id        String   @id @default(cuid())
+  orgId     String
+  key       String // aria | vikram | maya | leo | sage
+  enabled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, key])
+  @@index([orgId, enabled])
 }
 
 // ─── Idempotency ─────────────────────────────────────────────────────────────

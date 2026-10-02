@@ -153,6 +153,18 @@ export async function teardownPersona(persona: TestOrg): Promise<void> {
   await prisma.subscription.deleteMany({ where: { orgId: persona.orgId } });
   await prisma.idempotencyKey.deleteMany({ where: { orgId: persona.orgId } });
   await prisma.invoice.deleteMany({ where: { orgId: persona.orgId } });
+  // v0.5.0 tables (module spec creates these directly)
+  await prisma.automation.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.sheet.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.memoryQuestion.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.memoryFact.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.commsMessage.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.proposal.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.notification.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.aiEmployee.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.task.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.project.deleteMany({ where: { orgId: persona.orgId } });
+  await prisma.invitation.deleteMany({ where: { orgId: persona.orgId } });
   await prisma.client.deleteMany({ where: { orgId: persona.orgId } });
   await prisma.organization.deleteMany({ where: { id: persona.orgId } });
   await prisma.session.deleteMany({ where: { userId: persona.userId } });

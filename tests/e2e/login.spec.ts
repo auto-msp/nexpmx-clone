@@ -46,8 +46,9 @@ test("login page redirects sessioned users to /overview", async ({ page }) => {
 test("valid session cookie renders the app", async ({ page }) => {
   await loginAs(page, trial);
   await page.goto("/overview");
-  await expect(page.getByRole("heading", { name: /plan overview/i })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "App" })).toBeVisible();
+  // v0.5.0 dashboard leads with a time-of-day greeting
+  await expect(page.getByRole("heading", { name: /good (morning|afternoon|evening)/i })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Modules" })).toBeVisible();
 });
 
 test("login page shows the Google sign-in affordance", async ({ page }) => {
@@ -60,7 +61,8 @@ test("login page shows the Google sign-in affordance", async ({ page }) => {
 test("sign out clears the session and re-gates the app", async ({ page }) => {
   await loginAs(page, trial);
   await page.goto("/overview");
-  await expect(page.getByRole("heading", { name: /plan overview/i })).toBeVisible();
+  // v0.5.0 dashboard leads with a time-of-day greeting
+  await expect(page.getByRole("heading", { name: /good (morning|afternoon|evening)/i })).toBeVisible();
 
   await page.getByRole("button", { name: /sign out/i }).click();
   // signOutAction redirects to "/" (marketing home), which is public.
