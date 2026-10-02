@@ -1,181 +1,144 @@
 import type { Metadata } from "next";
-import { auth } from "@/lib/auth";
-import { getOrgContext } from "@/lib/tenancy";
+import Link from "next/link";
+import { pageContext } from "@/lib/page";
 import { prisma } from "@/lib/db";
-import { canRead } from "@/lib/rbac";
-import { Badge, Button, Card, EmptyState, Field, Input, SectionTitle, Select, Textarea } from "@/components/ui";
-import {
-  createProposal,
-  markProposalSent,
-  markProposalViewed,
-  decideProposal,
-  convertProposalToInvoice,
-  deleteProposalDraft,
-} from "@/app/actions/proposals";
-import { newIdempotencyKey } from "@/lib/idempotency";
-import { SubmitButton } from "@/components/submit-button";
-import { formatInr } from "@/lib/plans";
+import { inr, fmtDate, sp } from "@/lib/format";
+import { ButtonLink } from "@/components/ui";
+import { PageHeader, KpiGrid, KpiTile, TabLinks, EmptyPanel, StatusBadge } from "@/components/kit";
+import { SearchInput, ActionButton } from "@/components/kit-client";
+import { Icon } from "@/components/kit-icons";
+import { MiniLink } from "@/components/finance/mini-link";
+import { PROPOSAL_STATUS_TABS } from "@/components/finance/constants";
+import { markProposalSent, deleteProposal } from "@/app/actions/proposals";
 
 export const metadata: Metadata = { title: "Proposals", robots: { index: false } };
 
-const STAGES = [
-  { key: "DRAFT", label: "Draft", tone: "neutral" as const },
-  { key: "SENT", label: "Sent", tone: "brand" as const },
-  { key: "VIEWED", label: "Viewed", tone: "warn" as const },
-  { key: "ACCEPTED", label: "Accepted", tone: "success" as const },
-  { key: "REJECTED", label: "Rejected", tone: "danger" as const },
-];
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-export default async function ProposalsPage() {
-  const session = await auth();
-  const ctx = await getOrgContext(session!.user!.id);
-  if (!canRead(ctx!.role)) throw new Error("Forbidden");
+export default async function ProposalsPage({ searchParams }: { searchParams: SearchParams }) {
+  const { orgId, canWrite } = await pageContext("invoice:write");
+  const params = await searchParams;
+  const status = sp(params.status).toUpperCase();
+  const activeStatus = (PROPOSAL_STATUS_TABS as readonly string[]).includes(status) ? status : "";
+  const q = sp(params.q).trim().toLowerCase();
 
-  const ik = newIdempotencyKey();
+  const all = await prisma.proposal.findMany({
+    where: { orgId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      amountMinor: true,
+      status: true,
+      validUntil: true,
+      sentAt: true,
+      advancePct: true,
+      createdAt: true,
+      summary: true,
+      client: { select: { name: true } },
+    },
+  });
 
-  const [proposals, clients] = await Promise.all([
-    prisma.proposal.findMany({
-      where: { orgId: ctx!.orgId },
-      orderBy: { createdAt: "desc" },
-      include: { client: { select: { name: true } } },
-    }),
-    prisma.client.findMany({
-      where: { orgId: ctx!.orgId, status: "ACTIVE" },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  const sum = (rows: typeof all) => rows.reduce((s, p) => s + p.amountMinor, 0);
+  const by = (st: string[]) => all.filter((p) => st.includes(p.status));
+  const open = by(["DRAFT", "SENT", "VIEWED"]);
+  const awaiting = by(["SENT", "VIEWED"]);
+  const won = by(["ACCEPTED"]);
+  const lost = by(["REJECTED"]);
+  const decided = won.length + lost.length;
+  const winRate = decided > 0 ? Math.round((won.length / decided) * 100) : null;
 
-  const totals = STAGES.map((s) => ({
-    ...s,
-    count: proposals.filter((p) => p.status === s.key).length,
-    value: proposals
-      .filter((p) => p.status === s.key)
-      .reduce((sum, p) => sum + p.amountMinor, 0),
-  }));
+  const visible = all.filter(
+    (p) => (!activeStatus || p.status === activeStatus) && (!q || p.title.toLowerCase().includes(q) || (p.client?.name ?? "").toLowerCase().includes(q)),
+  );
+
+  const href = (s: string) => {
+    const u = new URLSearchParams();
+    if (s) u.set("status", s.toLowerCase());
+    if (q) u.set("q", q);
+    const qs = u.toString();
+    return qs ? `/proposals?${qs}` : "/proposals";
+  };
+  const tabs = [
+    { href: href(""), label: "All", active: !activeStatus, count: all.length },
+    ...PROPOSAL_STATUS_TABS.map((s) => ({
+      href: href(s),
+      label: s.charAt(0) + s.slice(1).toLowerCase(),
+      active: activeStatus === s,
+      count: all.filter((p) => p.status === s).length,
+    })),
+  ];
+  const now = Date.now();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Proposals</h1>
-        <p className="mt-1 text-sm text-muted">
-          Your pipeline from first draft to signature — accepted proposals hand off to invoices.
-        </p>
+    <div className="mx-auto max-w-7xl">
+      <PageHeader
+        title="Proposals"
+        subtitle="Draft, send and track proposals through to signature. Accepted proposals turn into an advance invoice in one click."
+        actions={canWrite ? <ButtonLink href="/proposals/new"><Icon name="plus" />New proposal</ButtonLink> : undefined}
+      />
+
+      <KpiGrid cols={4}>
+        <KpiTile label="Pipeline value" value={inr(sum(open))} hint={`${open.length} open proposal${open.length === 1 ? "" : "s"}`} icon="chart" tone="brand" />
+        <KpiTile label="Awaiting signature" value={inr(sum(awaiting))} hint={`${awaiting.length} sent or viewed`} icon="send" tone="warn" />
+        <KpiTile label="Win rate" value={winRate === null ? "—" : `${winRate}%`} hint={decided ? `${won.length} of ${decided} decided` : "No decisions yet"} icon="target" tone="success" />
+        <KpiTile label="Won value" value={inr(sum(won))} hint={`${won.length} accepted`} icon="check" tone="success" />
+      </KpiGrid>
+
+      <TabLinks tabs={tabs} />
+      <div className="mb-4 max-w-md">
+        <SearchInput param="q" placeholder="Search by title or client" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {totals.map((t) => (
-          <Card key={t.key} className="flex flex-col gap-1">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted">{t.label}</span>
-            <span className="text-xl font-semibold">{t.count}</span>
-            <span className="text-xs text-muted">{formatInr(t.value)}</span>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <SectionTitle>New proposal</SectionTitle>
-        <form action={createProposal} className="mt-4 grid gap-4 sm:grid-cols-2">
-          <input type="hidden" name="ik" value={ik} />
-          <Field label="Title *">
-            <Input name="title" required maxLength={200} placeholder="Website revamp — phase 1" />
-          </Field>
-          <Field label="Client">
-            <Select name="clientId" defaultValue="">
-              <option value="">— no client yet —</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Value (₹)">
-            <Input name="amountMinor" type="number" min={0} step="1" placeholder="150000 = ₹1,500" />
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Notes">
-              <Textarea name="notes" maxLength={5000} placeholder="Scope, milestones, terms…" className="min-h-20" />
-            </Field>
-          </div>
-          <div className="sm:col-span-2">
-            <SubmitButton pendingLabel="Creating…">Create proposal</SubmitButton>
-          </div>
-        </form>
-      </Card>
-
-      <section aria-label="Proposal pipeline" className="grid gap-4 lg:grid-cols-5">
-        {STAGES.map((stage) => {
-          const items = proposals.filter((p) => p.status === stage.key);
-          return (
-            <div key={stage.key} className="rounded-[var(--radius-card)] border border-border bg-surface-2/30 p-3">
-              <div className="flex items-center justify-between pb-2">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">{stage.label}</h2>
-                <Badge tone={stage.tone}>{items.length}</Badge>
-              </div>
-              <ul className="space-y-2">
-                {items.map((p) => (
-                  <li key={p.id} className="rounded-[var(--radius-control)] border border-border bg-surface p-3 text-sm">
-                    <div className="font-medium">{p.title}</div>
-                    <div className="mt-0.5 text-xs text-muted">
-                      {p.client?.name ?? "No client"} · {formatInr(p.amountMinor)}
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {p.status === "DRAFT" ? (
-                        <>
-                          <form action={markProposalSent}>
-                            <input type="hidden" name="id" value={p.id} />
-                            <Button variant="secondary" type="submit" className="px-2 py-1 text-xs">Send</Button>
-                          </form>
-                          <form action={deleteProposalDraft}>
-                            <input type="hidden" name="id" value={p.id} />
-                            <Button variant="ghost" type="submit" className="px-2 py-1 text-xs">Delete</Button>
-                          </form>
-                        </>
-                      ) : null}
-                      {p.status === "SENT" ? (
-                        <form action={markProposalViewed}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <Button variant="secondary" type="submit" className="px-2 py-1 text-xs">Mark viewed</Button>
-                        </form>
-                      ) : null}
-                      {["SENT", "VIEWED"].includes(p.status) ? (
-                        <>
-                          <form action={decideProposal}>
-                            <input type="hidden" name="id" value={p.id} />
-                            <input type="hidden" name="decision" value="ACCEPTED" />
-                            <Button variant="primary" type="submit" className="px-2 py-1 text-xs">Accept</Button>
-                          </form>
-                          <form action={decideProposal}>
-                            <input type="hidden" name="id" value={p.id} />
-                            <input type="hidden" name="decision" value="REJECTED" />
-                            <Button variant="ghost" type="submit" className="px-2 py-1 text-xs">Reject</Button>
-                          </form>
-                        </>
-                      ) : null}
-                      {p.status === "ACCEPTED" && p.clientId ? (
-                        <form action={convertProposalToInvoice}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <Button variant="primary" type="submit" className="px-2 py-1 text-xs">Invoice</Button>
-                        </form>
-                      ) : null}
-                      {p.status === "ACCEPTED" && !p.clientId ? (
-                        <span className="text-xs text-warn">Attach a client to invoice</span>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-                {items.length === 0 ? <li className="pb-1 text-xs text-muted">Empty</li> : null}
-              </ul>
-            </div>
-          );
-        })}
-      </section>
-
-      {proposals.length === 0 ? (
-        <EmptyState
+      {all.length === 0 ? (
+        <EmptyPanel
+          icon="file"
           title="No proposals yet"
-          hint="Create your first proposal above — accepted proposals convert to invoices in one click."
+          hint="Create your first proposal and send it for signature."
+          action={canWrite ? <ButtonLink href="/proposals/new"><Icon name="plus" />New proposal</ButtonLink> : undefined}
         />
-      ) : null}
+      ) : visible.length === 0 ? (
+        <EmptyPanel icon="search" title="No proposals match" hint="Try another status tab or clear the search." />
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {visible.map((p) => {
+            const expired = p.validUntil && p.validUntil.getTime() < now && ["DRAFT", "SENT", "VIEWED"].includes(p.status);
+            return (
+              <li key={p.id} className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link href={`/proposals/${p.id}`} className="truncate font-medium hover:text-brand">
+                        {p.title}
+                      </Link>
+                      <StatusBadge status={p.status} />
+                    </div>
+                    <p className="mt-1 text-xs text-muted">
+                      {p.client?.name ?? "No client"} · {p.advancePct}% advance
+                      {p.sentAt ? ` · sent ${fmtDate(p.sentAt)}` : ` · created ${fmtDate(p.createdAt)}`}
+                      {p.validUntil ? (
+                        <span className={expired ? "text-warn" : undefined}> · {expired ? "expired" : "valid until"} {fmtDate(p.validUntil)}</span>
+                      ) : null}
+                    </p>
+                    {p.summary ? <p className="mt-1 line-clamp-1 text-xs text-muted">{p.summary}</p> : null}
+                  </div>
+                  <div className="text-right text-lg font-semibold tabular-nums">{inr(p.amountMinor)}</div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-1 border-t border-border pt-2">
+                  <MiniLink href={`/proposals/${p.id}`} icon="eye" label="View" />
+                  {canWrite && p.status === "DRAFT" ? (
+                    <ActionButton action={markProposalSent} fields={{ id: p.id }} label="Send" icon="send" confirm="Mark this proposal as sent?" />
+                  ) : null}
+                  {canWrite && !["ACCEPTED", "REJECTED"].includes(p.status) ? <MiniLink href={`/proposals/${p.id}/edit`} icon="edit" label="Edit" /> : null}
+                  {canWrite ? (
+                    <ActionButton action={deleteProposal} fields={{ id: p.id }} label="Delete" icon="trash" variant="ghost" confirm={`Delete “${p.title}”? This cannot be undone.`} />
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

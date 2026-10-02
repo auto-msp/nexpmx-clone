@@ -1,126 +1,164 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { getOrgContext } from "@/lib/tenancy";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { Badge, Card, EmptyState } from "@/components/ui";
+import { pageContext, orgMembers } from "@/lib/page";
+import { fmtDateTime, sp } from "@/lib/format";
+import { PageHeader, Panel, EmptyPanel } from "@/components/kit";
+import { Badge, Button, ButtonLink, Field, Input, Select } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Audit log", robots: { index: false } };
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 40;
 
-export default async function AuditPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; action?: string }>;
-}) {
-  const { page, action } = await searchParams;
-  const session = await auth();
-  const ctx = await getOrgContext(session!.user!.id);
-  const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
+function metaChips(json: string): Array<[string, string]> {
+  try {
+    const obj = JSON.parse(json) as Record<string, unknown>;
+    return Object.entries(obj)
+      .slice(0, 5)
+      .map(([k, v]) => [k, typeof v === "object" ? JSON.stringify(v) : String(v)] as [string, string]);
+  } catch {
+    return [];
+  }
+}
 
-  const where = {
-    orgId: ctx!.orgId,
-    ...(action ? { action: { contains: action } } : {}),
+export default async function AuditPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const raw = await searchParams;
+  const action = sp(raw.action).trim();
+  const entity = sp(raw.entity).trim();
+  const actor = sp(raw.actor).trim();
+  const pageNum = Math.max(1, parseInt(sp(raw.page) || "1", 10) || 1);
+
+  const { orgId } = await pageContext();
+
+  const where: Prisma.AuditLogWhereInput = {
+    orgId,
+    ...(action ? { action: { contains: action, mode: "insensitive" } } : {}),
+    ...(entity ? { entity } : {}),
+    ...(actor === "system" ? { actorId: null } : actor ? { actorId: actor } : {}),
   };
 
-  const [logs, total] = await Promise.all([
-    prisma.auditLog.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (pageNum - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
+  const [logs, total, entities, members] = await Promise.all([
+    prisma.auditLog.findMany({ where, orderBy: { createdAt: "desc" }, skip: (pageNum - 1) * PAGE_SIZE, take: PAGE_SIZE }),
     prisma.auditLog.count({ where }),
+    prisma.auditLog.groupBy({ by: ["entity"], where: { orgId }, orderBy: { entity: "asc" } }),
+    orgMembers(orgId),
   ]);
 
+  const nameOf = new Map(members.map((m) => [m.id, m.name ?? m.email]));
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const filtered = Boolean(action || entity || actor);
+
+  const pageHref = (n: number) => {
+    const qs = new URLSearchParams();
+    if (action) qs.set("action", action);
+    if (entity) qs.set("entity", entity);
+    if (actor) qs.set("actor", actor);
+    if (n > 1) qs.set("page", String(n));
+    const s = qs.toString();
+    return s ? `/settings/audit?${s}` : "/settings/audit";
+  };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Audit log</h1>
-        <p className="mt-1 text-sm text-muted">
-          Every mutation in this workspace — who, what, when. {total} event{total === 1 ? "" : "s"} total.
-        </p>
-      </div>
+    <>
+      <PageHeader title="Audit log" subtitle={`Every change in this workspace: who, what and when. ${total.toLocaleString("en-IN")} event${total === 1 ? "" : "s"}${filtered ? " match" : " in total"}.`} />
 
-      <form method="GET" className="flex items-end gap-2">
-        <label className="text-xs text-muted">
-          Filter by action
-          <input
-            name="action"
-            defaultValue={action ?? ""}
-            placeholder="invoice., memory., automation."
-            className="mt-1 block w-64 rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-1.5 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-[var(--radius-control)] border border-border px-3 py-1.5 text-xs text-muted hover:border-brand hover:text-text"
-        >
-          Apply
-        </button>
+      <form method="GET" className="mb-4 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+        <Field label="Action contains">
+          <Input name="action" defaultValue={action} placeholder="invoice., member., ai." />
+        </Field>
+        <Field label="Entity">
+          <Select name="entity" defaultValue={entity}>
+            <option value="">All entities</option>
+            {entities.map((e) => (
+              <option key={e.entity} value={e.entity}>
+                {e.entity}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Who">
+          <Select name="actor" defaultValue={actor}>
+            <option value="">Anyone</option>
+            <option value="system">System</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name ?? m.email}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <div className="flex gap-2">
+          <Button type="submit" variant="secondary">
+            Apply
+          </Button>
+          {filtered ? (
+            <ButtonLink href="/settings/audit" variant="ghost">
+              Clear
+            </ButtonLink>
+          ) : null}
+        </div>
       </form>
 
       {logs.length === 0 ? (
-        <EmptyState title="No events match" hint="Try clearing the action filter." />
+        <EmptyPanel icon="clock" title="No events match" hint={filtered ? "Try clearing a filter." : "Changes made in the workspace will appear here."} />
       ) : (
-        <div className="overflow-x-auto rounded-[var(--radius-card)] border border-border">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-border bg-surface-2/60 text-xs uppercase tracking-wider text-muted">
-                <th className="px-4 py-3 font-medium">When</th>
-                <th className="px-4 py-3 font-medium">Actor</th>
-                <th className="px-4 py-3 font-medium">Action</th>
-                <th className="px-4 py-3 font-medium">Entity</th>
-                <th className="px-4 py-3 font-medium">Detail</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {logs.map((l) => (
-                <tr key={l.id}>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-muted">
-                    {l.createdAt.toISOString().slice(0, 16).replace("T", " ")}
-                  </td>
-                  <td className="px-4 py-2.5 text-muted">
-                    {l.actorId ? <Badge tone="neutral">member</Badge> : <Badge tone="warn">system</Badge>}
-                  </td>
-                  <td className="px-4 py-2.5 font-mono text-xs">{l.action}</td>
-                  <td className="px-4 py-2.5 text-muted">{l.entity}</td>
-                  <td className="max-w-64 truncate px-4 py-2.5 text-xs text-muted">
-                    {l.metaJson !== "{}" ? l.metaJson : "—"}
-                  </td>
+        <Panel flush>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border bg-surface-2/60 text-xs uppercase tracking-wider text-muted">
+                  <th className="px-4 py-3 font-medium">When</th>
+                  <th className="px-4 py-3 font-medium">Who</th>
+                  <th className="px-4 py-3 font-medium">Action</th>
+                  <th className="px-4 py-3 font-medium">Entity</th>
+                  <th className="px-4 py-3 font-medium">Detail</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {logs.map((l) => (
+                  <tr key={l.id}>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-muted">{fmtDateTime(l.createdAt)}</td>
+                    <td className="px-4 py-2.5">
+                      {l.actorId ? <span className="text-sm">{nameOf.get(l.actorId) ?? "Former member"}</span> : <Badge tone="warn">system</Badge>}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{l.action}</td>
+                    <td className="px-4 py-2.5 text-muted">{l.entity}</td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex max-w-72 flex-wrap gap-1">
+                        {metaChips(l.metaJson).map(([k, v]) => (
+                          <span key={k} className="max-w-full truncate rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-muted" title={`${k}: ${v}`}>
+                            {k}: {v}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
       )}
 
       {pages > 1 ? (
-        <div className="flex items-center gap-3 text-sm text-muted">
-          {pageNum > 1 ? (
-            <Link
-              href={`/settings/audit?page=${pageNum - 1}${action ? `&action=${encodeURIComponent(action)}` : ""}`}
-              className="text-brand hover:underline"
-            >
-              ← Newer
-            </Link>
-          ) : null}
+        <div className="mt-4 flex items-center justify-between gap-3 text-sm text-muted">
           <span>
             Page {pageNum} of {pages}
           </span>
-          {pageNum < pages ? (
-            <Link
-              href={`/settings/audit?page=${pageNum + 1}${action ? `&action=${encodeURIComponent(action)}` : ""}`}
-              className="text-brand hover:underline"
-            >
-              Older →
-            </Link>
-          ) : null}
+          <span className="flex gap-2">
+            {pageNum > 1 ? (
+              <ButtonLink href={pageHref(pageNum - 1)} variant="secondary">
+                Newer
+              </ButtonLink>
+            ) : null}
+            {pageNum < pages ? (
+              <ButtonLink href={pageHref(pageNum + 1)} variant="secondary">
+                Older
+              </ButtonLink>
+            ) : null}
+          </span>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

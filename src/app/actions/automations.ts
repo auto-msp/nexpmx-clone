@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireApiContext } from "@/lib/api";
-import { requirePermission } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
 import { requireEntitlement } from "@/lib/entitlements";
+import { runAction, fStr, fOpt, fBool, fIk, type ActionResult } from "@/lib/action";
+import { withIdempotency } from "@/lib/idempotency";
 import {
   matchAutomations,
   recipeOf,
@@ -24,188 +24,174 @@ import { getMailProvider, automationEmail, appUrl, isPlausibleEmail } from "@/li
  * checkboxes, task title, watch scope Everything/One client/One project),
  * and a "Your automations" tab with enable/disable and remove.
  *
- * Dispatch: domain events call emitAutomationEvent(); we load enabled
- * automations, match with the PURE matcher, then execute effects inline.
- * Effects are honest about scope: notifications land in Notification rows
- * and are surfaced in the Home attention queue and the bell; create_task
- * inserts a real Task under a project when the event carries one (or the
- * watch scope's project), else under the org's most recent active project.
- * No email/SMS is sent from this process (KNOWN_LIMITATIONS).
+ * UI actions (install / create / toggle / delete) RETURN a result so the
+ * message survives production error masking. Dispatch: domain events call
+ * emitAutomationEvent(); we load enabled automations, match with the PURE
+ * matcher, then execute effects inline. Effects are honest about scope:
+ * notifications land in Notification rows and are surfaced in the Home
+ * attention queue and the bell; create_task inserts a real Task under a
+ * project when the event carries one (or the watch scope's project), else
+ * under the org's most recent active project.
  */
 
 const TRIGGERS = TRIGGER_OPTIONS.map((t) => t.value) as string[];
 
 const createAutomationSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(120),
-  trigger: z.string().refine((v) => TRIGGERS.includes(v), "Invalid trigger"),
-  notifyFounders: z.boolean().default(false),
-  notifyClient: z.boolean().default(false),
-  createTask: z.boolean().default(false),
+  name: z.string().trim().min(1, "Give the automation a name").max(120),
+  trigger: z.string().refine((v) => TRIGGERS.includes(v), "Choose a trigger"),
+  notifyFounders: z.boolean(),
+  notifyClient: z.boolean(),
+  createTask: z.boolean(),
   taskTitle: z.string().trim().max(200).optional(),
-  watchScope: z.enum(["ALL", "CLIENT", "PROJECT"]).default("ALL"),
-  watchClientId: z.string().trim().optional(),
-  watchProjectId: z.string().trim().optional(),
+  watchScope: z.enum(["ALL", "CLIENT", "PROJECT"]),
 });
 
-function parseEffectBooleans(fd: FormData) {
-  // HTML checkboxes post "on" when checked.
-  return {
-    notifyFounders: fd.get("notifyFounders") === "on",
-    notifyClient: fd.get("notifyClient") === "on",
-    createTask: fd.get("createTask") === "on",
-  };
-}
-
-export async function installRecipe(formData: FormData) {
-  const ctx = await requireApiContext();
-  requirePermission(ctx.role, "automation:write");
-  await requireEntitlement(ctx.orgId);
-
-  const recipeId = String(formData.get("recipeId") ?? "");
-  const recipe = recipeOf(recipeId);
-  if (!recipe) throw new Error("Unknown recipe");
-
-  const dupe = await prisma.automation.findFirst({
-    where: { orgId: ctx.orgId, name: recipe.title },
-    select: { id: true },
-  });
-  if (dupe) throw new Error("That automation is already installed");
-
-  await prisma.automation.create({
-    data: {
-      orgId: ctx.orgId,
-      name: recipe.title,
-      enabled: true,
-      trigger: recipe.trigger,
-      notifyFounders: recipe.effects.includes("notify_founders"),
-      notifyClient: recipe.effects.includes("notify_client"),
-      createTask: recipe.effects.includes("create_task"),
-      taskTitle: recipe.taskTitle ?? null,
-      watchScope: "ALL",
-      configJson: JSON.stringify({ recipeId: recipe.id }),
-    },
-  });
-
-  await audit({
-    orgId: ctx.orgId,
-    actorId: ctx.userId,
-    action: "automation.installed",
-    entity: "Automation",
-    entityId: recipe.id,
-    meta: { name: recipe.title },
-  });
-
+function revalidateAutomations() {
   revalidatePath("/ai/automations");
+  revalidatePath("/ai");
 }
 
-export async function createAutomation(formData: FormData) {
-  const ctx = await requireApiContext();
-  requirePermission(ctx.role, "automation:write");
-  await requireEntitlement(ctx.orgId);
+export async function installRecipe(fd: FormData): Promise<ActionResult> {
+  return runAction("automation:write", async (ctx) => {
+    await requireEntitlement(ctx.orgId);
+    const recipe = recipeOf(fStr(fd, "recipeId"));
+    if (!recipe) throw new Error("That recipe is no longer available.");
 
-  const effects = parseEffectBooleans(formData);
-  const parsed = createAutomationSchema.safeParse({
-    name: formData.get("name"),
-    trigger: formData.get("trigger"),
-    ...effects,
-    taskTitle: formData.get("taskTitle") || undefined,
-    watchScope: formData.get("watchScope") || "ALL",
-    watchClientId: formData.get("watchClientId") || undefined,
-    watchProjectId: formData.get("watchProjectId") || undefined,
-  });
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues.map((i) => i.message).join("; "));
-  }
-  if (
-    !parsed.data.notifyFounders &&
-    !parsed.data.notifyClient &&
-    !parsed.data.createTask
-  ) {
-    throw new Error("Pick at least one action — what should happen when it fires?");
-  }
-
-  let watchClientId: string | null = null;
-  let watchProjectId: string | null = null;
-  if (parsed.data.watchScope === "CLIENT" && parsed.data.watchClientId) {
-    const c = await prisma.client.findFirst({
-      where: { id: parsed.data.watchClientId, orgId: ctx.orgId },
+    const dupe = await prisma.automation.findFirst({
+      where: { orgId: ctx.orgId, name: recipe.title },
       select: { id: true },
     });
-    if (!c) throw new Error("Client not found in your organization");
-    watchClientId = c.id;
-  }
-  if (parsed.data.watchScope === "PROJECT" && parsed.data.watchProjectId) {
-    const p = await prisma.project.findFirst({
-      where: { id: parsed.data.watchProjectId, orgId: ctx.orgId },
-      select: { id: true },
+    if (dupe) throw new Error("You already added that one. Find it under Your automations.");
+
+    const row = await prisma.automation.create({
+      data: {
+        orgId: ctx.orgId,
+        name: recipe.title,
+        enabled: true,
+        trigger: recipe.trigger,
+        notifyFounders: recipe.effects.includes("notify_founders"),
+        notifyClient: recipe.effects.includes("notify_client"),
+        createTask: recipe.effects.includes("create_task"),
+        taskTitle: recipe.taskTitle ?? null,
+        watchScope: "ALL",
+        configJson: JSON.stringify({ recipeId: recipe.id }),
+      },
     });
-    if (!p) throw new Error("Project not found in your organization");
-    watchProjectId = p.id;
-  }
-
-  const row = await prisma.automation.create({
-    data: {
+    await audit({
       orgId: ctx.orgId,
-      name: parsed.data.name,
-      enabled: true,
-      trigger: parsed.data.trigger,
-      notifyFounders: parsed.data.notifyFounders,
-      notifyClient: parsed.data.notifyClient,
-      createTask: parsed.data.createTask,
-      taskTitle: parsed.data.taskTitle ?? null,
-      watchScope: parsed.data.watchScope,
-      watchClientId,
-      watchProjectId,
-    },
+      actorId: ctx.userId,
+      action: "automation.installed",
+      entity: "Automation",
+      entityId: row.id,
+      meta: { name: recipe.title, recipe: recipe.id },
+    });
+    revalidateAutomations();
+    return { id: row.id, message: `Added "${recipe.title}".` };
   });
-
-  await audit({
-    orgId: ctx.orgId,
-    actorId: ctx.userId,
-    action: "automation.created",
-    entity: "Automation",
-    entityId: row.id,
-    meta: { trigger: parsed.data.trigger, scope: parsed.data.watchScope },
-  });
-
-  revalidatePath("/ai/automations");
 }
 
-export async function toggleAutomation(formData: FormData) {
-  const ctx = await requireApiContext();
-  requirePermission(ctx.role, "automation:write");
-  await requireEntitlement(ctx.orgId);
-  const id = String(formData.get("id") ?? "");
-  const existing = await prisma.automation.findFirst({ where: { id, orgId: ctx.orgId } });
-  if (!existing) throw new Error("Automation not found");
-  await prisma.automation.update({ where: { id }, data: { enabled: !existing.enabled } });
-  await audit({
-    orgId: ctx.orgId,
-    actorId: ctx.userId,
-    action: existing.enabled ? "automation.disabled" : "automation.enabled",
-    entity: "Automation",
-    entityId: id,
+export async function createAutomation(fd: FormData): Promise<ActionResult> {
+  return runAction("automation:write", async (ctx) => {
+    await requireEntitlement(ctx.orgId);
+    const ik = fIk(fd);
+    const p = createAutomationSchema.parse({
+      name: fStr(fd, "name"),
+      trigger: fStr(fd, "trigger"),
+      notifyFounders: fBool(fd, "notifyFounders"),
+      notifyClient: fBool(fd, "notifyClient"),
+      createTask: fBool(fd, "createTask"),
+      taskTitle: fOpt(fd, "taskTitle") ?? undefined,
+      watchScope: fStr(fd, "watchScope") || "ALL",
+    });
+    if (!p.notifyFounders && !p.notifyClient && !p.createTask) {
+      throw new Error("Pick at least one action: what should happen when it fires?");
+    }
+
+    let watchClientId: string | null = null;
+    let watchProjectId: string | null = null;
+    if (p.watchScope === "CLIENT") {
+      const id = fStr(fd, "watchClientId");
+      if (!id) throw new Error("Choose which client to watch.");
+      const c = await prisma.client.findFirst({ where: { id, orgId: ctx.orgId }, select: { id: true } });
+      if (!c) throw new Error("Client not found.");
+      watchClientId = c.id;
+    }
+    if (p.watchScope === "PROJECT") {
+      const id = fStr(fd, "watchProjectId");
+      if (!id) throw new Error("Choose which project to watch.");
+      const pr = await prisma.project.findFirst({ where: { id, orgId: ctx.orgId }, select: { id: true } });
+      if (!pr) throw new Error("Project not found.");
+      watchProjectId = pr.id;
+    }
+
+    const out = await withIdempotency(ctx.orgId, "automation.create", ik, (tx) =>
+      tx.automation.create({
+        data: {
+          orgId: ctx.orgId,
+          name: p.name,
+          enabled: true,
+          trigger: p.trigger,
+          notifyFounders: p.notifyFounders,
+          notifyClient: p.notifyClient,
+          createTask: p.createTask,
+          taskTitle: p.taskTitle ?? null,
+          watchScope: p.watchScope,
+          watchClientId,
+          watchProjectId,
+        },
+      }),
+    );
+    if (out.kind === "created") {
+      await audit({
+        orgId: ctx.orgId,
+        actorId: ctx.userId,
+        action: "automation.created",
+        entity: "Automation",
+        entityId: out.entityId,
+        meta: { trigger: p.trigger, scope: p.watchScope },
+      });
+    }
+    revalidateAutomations();
+    return { id: out.entityId, message: "Automation created.", redirect: "/ai/automations?tab=yours" };
   });
-  revalidatePath("/ai/automations");
 }
 
-export async function deleteAutomation(formData: FormData) {
-  const ctx = await requireApiContext();
-  requirePermission(ctx.role, "automation:write");
-  await requireEntitlement(ctx.orgId);
-  const id = String(formData.get("id") ?? "");
-  const existing = await prisma.automation.findFirst({ where: { id, orgId: ctx.orgId } });
-  if (!existing) throw new Error("Automation not found");
-  await prisma.automation.delete({ where: { id } });
-  await audit({
-    orgId: ctx.orgId,
-    actorId: ctx.userId,
-    action: "automation.deleted",
-    entity: "Automation",
-    entityId: id,
-    meta: { name: existing.name },
+export async function toggleAutomation(fd: FormData): Promise<ActionResult> {
+  return runAction("automation:write", async (ctx) => {
+    await requireEntitlement(ctx.orgId);
+    const id = fStr(fd, "id");
+    const existing = await prisma.automation.findFirst({ where: { id, orgId: ctx.orgId } });
+    if (!existing) throw new Error("Automation not found.");
+    await prisma.automation.update({ where: { id }, data: { enabled: !existing.enabled } });
+    await audit({
+      orgId: ctx.orgId,
+      actorId: ctx.userId,
+      action: existing.enabled ? "automation.disabled" : "automation.enabled",
+      entity: "Automation",
+      entityId: id,
+    });
+    revalidateAutomations();
+    return { message: existing.enabled ? "Paused." : "Switched on." };
   });
-  revalidatePath("/ai/automations");
+}
+
+export async function deleteAutomation(fd: FormData): Promise<ActionResult> {
+  return runAction("automation:write", async (ctx) => {
+    const id = fStr(fd, "id");
+    const existing = await prisma.automation.findFirst({ where: { id, orgId: ctx.orgId } });
+    if (!existing) throw new Error("Automation not found.");
+    await prisma.automation.delete({ where: { id } });
+    await audit({
+      orgId: ctx.orgId,
+      actorId: ctx.userId,
+      action: "automation.deleted",
+      entity: "Automation",
+      entityId: id,
+      meta: { name: existing.name },
+    });
+    revalidateAutomations();
+    return { message: "Automation deleted." };
+  });
 }
 
 // ── Event dispatch ───────────────────────────────────────────────────────────

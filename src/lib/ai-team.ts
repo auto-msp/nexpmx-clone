@@ -96,3 +96,59 @@ export function teamCreditPrice(enabledKeys: string[]): number {
     0,
   );
 }
+
+/* ── Presentation helpers for the AI team page (additive) ─────────────────── */
+
+/** One-line summary shown on each employee card. */
+export const AI_EMPLOYEE_SUMMARY: Record<string, string> = {
+  aria: "Plans the work, drafts status updates and breaks a scope into tasks.",
+  vikram: "Drafts invoices, chases late payments and prepares money summaries.",
+  maya: "Writes process documents and suggests who should work on what.",
+  leo: "Keeps clients informed with updates, check-ins and review preparation.",
+  sage: "Prepares call structures, proposal intros and answers to common objections.",
+};
+
+/** Tinted avatar classes (token based, readable in both themes). */
+export const AI_EMPLOYEE_TINT: Record<string, string> = {
+  aria: "bg-brand/15 text-brand",
+  vikram: "bg-success/15 text-success",
+  maya: "bg-warn/15 text-warn",
+  leo: "bg-brand/15 text-brand",
+  sage: "bg-surface-2 text-text",
+};
+
+export const CUSTOM_EMPLOYEE_TINT = "bg-surface-2 text-text";
+
+/** Starter prompts offered when assigning a task, per employee. */
+export const AI_TASK_SUGGESTIONS: Record<string, string[]> = {
+  aria: [
+    "Break the next project's scope into a task list",
+    "Draft this week's status update for my active projects",
+    "Which projects look likely to slip, and why?",
+  ],
+  vikram: [
+    "Summarise what clients owe us and what is overdue",
+    "Draft a polite reminder for the oldest unpaid invoice",
+    "Which projects have work done but nothing billed?",
+  ],
+  maya: [
+    "Write a short SOP for onboarding a new client",
+    "Suggest how to spread next week's work across the team",
+    "List the processes we should document first",
+  ],
+  leo: [
+    "Summarise everything we know about a client before my call",
+    "Draft a friendly check-in message for a quiet client",
+    "Prepare talking points for a quarterly review",
+  ],
+  sage: [
+    "Draft an opening paragraph for a new proposal",
+    "Outline a discovery call for a new lead",
+    "Suggest replies to the objection that our price is high",
+  ],
+  custom: [
+    "Summarise everything we know about our best clients",
+    "Draft a proposal intro for this project",
+    "What do we know about our best-performing projects?",
+  ],
+};

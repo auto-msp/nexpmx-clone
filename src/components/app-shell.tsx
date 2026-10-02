@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { signOutAction } from "@/app/actions/auth";
 import { PLANS, formatInr } from "@/lib/plans";
 
@@ -27,28 +28,60 @@ export function UserMenu({ userName }: { userName: string }) {
 }
 
 /**
- * Trial countdown banner (evidence-backed: 14-day trial at signup,
- * docs/ASSUMPTIONS.md §8). Sits under the header on every (app) page.
+ * Trial countdown banner: dismissible (per browser session), with a
+ * "Choose a plan" pill. Sits under the top bar on every (app) page.
  */
 export function TrialBanner({
   view,
 }: {
   view: { state: string; daysRemaining: number | null; expired: boolean };
 }) {
-  if (view.state !== "TRIALING" || view.expired) return null;
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("bm-trial-banner") === "x") setHidden(true);
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+  if (hidden || view.state !== "TRIALING" || view.expired) return null;
   const urgent = view.daysRemaining !== null && view.daysRemaining <= 3;
+  const days = view.daysRemaining;
   return (
     <div
       role="status"
       className={
         urgent
-          ? "border-b border-warn/30 bg-warn/10 px-4 py-2 text-center text-sm text-warn sm:px-6"
-          : "border-b border-brand/20 bg-brand/10 px-4 py-2 text-center text-sm text-brand sm:px-6"
+          ? "flex items-center justify-center gap-3 border-b border-warn/30 bg-warn/10 px-4 py-2 text-sm text-warn sm:px-6"
+          : "flex items-center justify-center gap-3 border-b border-brand/25 bg-brand/10 px-4 py-2 text-sm text-brand sm:px-6"
       }
     >
-      {view.daysRemaining !== null
-        ? `Trial — ${view.daysRemaining} ${view.daysRemaining === 1 ? "day" : "days"} left. Choose a plan any time from Settings.`
-        : "Trial active. Choose a plan any time from Settings."}
+      <span>
+        {days !== null
+          ? `Trial: ${days} ${days === 1 ? "day" : "days"} left. Your data stays safe whichever plan you pick.`
+          : "Trial active. Your data stays safe whichever plan you pick."}
+      </span>
+      <a
+        href="/settings/plan"
+        className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-white hover:bg-brand-strong"
+      >
+        Choose a plan →
+      </a>
+      <button
+        type="button"
+        aria-label="Dismiss"
+        className="rounded p-1 opacity-70 hover:opacity-100"
+        onClick={() => {
+          setHidden(true);
+          try {
+            sessionStorage.setItem("bm-trial-banner", "x");
+          } catch {
+            /* ignore */
+          }
+        }}
+      >
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
     </div>
   );
 }

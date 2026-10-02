@@ -30,6 +30,9 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   documents     Document[]
+  designation   String?
+  phone         String?
+  weeklyCapacityHours Int @default(40)
 
   @@index([email])
 }
@@ -135,6 +138,13 @@ model Organization {
   idempotencyKeys IdempotencyKey[]
   checkoutSessions CheckoutSession[]
   billingEvents   BillingEvent[]
+  milestones      Milestone[]
+  expenses        Expense[]
+  goals           Goal[]
+  calendarEvents  CalendarEvent[]
+  boards          Board[]
+  portalInvites   PortalInvite[]
+  skills          Skill[]
 }
 
 enum Plan {
@@ -167,6 +177,19 @@ model Client {
   phone       String?
   status      ClientStatus @default(ACTIVE)
   portalToken String       @unique @default(cuid())
+  industry         String?
+  website          String?
+  source           String?
+  gstin            String?
+  paymentTermsDays Int          @default(15)
+  billingAddress   String?
+  state            String?
+  city             String?
+  pincode          String?
+  health           ClientHealth @default(GOOD)
+  nextFollowUpAt   DateTime?
+  notes            String?
+  logoUrl          String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -178,8 +201,16 @@ model Client {
   comments  Comment[]
   proposals Proposal[]
   commsMessages CommsMessage[]
+  portalInvites PortalInvite[]
+  boards        Board[]
 
   @@index([orgId, status])
+}
+
+enum ClientHealth {
+  GOOD
+  WATCH
+  AT_RISK
 }
 
 enum ClientStatus {
@@ -193,6 +224,13 @@ model Project {
   clientId  String?
   name      String
   status    ProjectStatus @default(ACTIVE)
+  description        String?
+  projectType        String   @default("FIXED_PRICE")
+  health             String   @default("ON_TRACK")
+  contractValueMinor Int      @default(0)
+  startDate          DateTime?
+  deadline           DateTime?
+  hideClient         Boolean  @default(false)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   org       Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -202,12 +240,15 @@ model Project {
   documents Document[]
   decisions Decision[]
   comments  Comment[]
+  milestones Milestone[]
+  expenses  Expense[]
 
   @@index([orgId, status])
   @@index([clientId])
 }
 
 enum ProjectStatus {
+  PLANNING
   ACTIVE
   PAUSED
   COMPLETED
@@ -216,21 +257,29 @@ enum ProjectStatus {
 model Task {
   id         String     @id @default(cuid())
   orgId      String
-  projectId  String
+  projectId  String?
   title      String
   status     TaskStatus @default(TODO)
   assigneeId String?
   dueDate    DateTime?
+  description String?
+  priority    String    @default("MEDIUM")
+  milestoneId String?
+  createdById String?
+  position    Int       @default(0)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone  Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
 
   @@index([orgId, projectId, status])
 }
 
 enum TaskStatus {
+  BACKLOG
   TODO
   IN_PROGRESS
+  IN_REVIEW
   DONE
 }
 
@@ -249,10 +298,16 @@ model Invoice {
   gstinSnapshot String?
   issuedAt    DateTime?
   dueAt       DateTime?
+  projectId   String?
+  interstate  Boolean       @default(false)
+  notes       String?
+  terms       String?
+  bankDetails String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
   client      Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  lines       InvoiceLine[]
 
   @@unique([orgId, number])
   @@index([orgId, status])
@@ -423,6 +478,11 @@ model Proposal {
   currency    String         @default("INR")
   status      ProposalStatus @default(DRAFT)
   notes       String?
+  summary     String?
+  bodyHtml    String?
+  lineItemsJson String       @default("[]")
+  advancePct  Int            @default(30)
+  validUntil  DateTime?
   sentAt      DateTime?
   decidedAt   DateTime?
   createdAt   DateTime       @default(now())
@@ -528,8 +588,13 @@ model Sheet {
 model AiEmployee {
   id        String   @id @default(cuid())
   orgId     String
-  key       String // aria | vikram | maya | leo | sage
+  key       String // aria | vikram | maya | leo | sage | custom-<id>
   enabled   Boolean  @default(false)
+  name         String?
+  roleTitle    String?
+  summary      String?
+  instructions String?
+  custom       Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -663,4 +728,138 @@ model Invitation {
 
   @@index([orgId, status])
   @@index([email])
+}
+
+
+// ─── Added for the structure rebuild (2026-10) ─────────────────────────────
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  position    Int     @default(0)
+  description String
+  quantity    Float   @default(1)
+  unit        String  @default("Piece")
+  rateMinor   Int     @default(0)
+  gstBps      Int     @default(1800)
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  orgId       String
+  projectId   String
+  name        String
+  dueDate     DateTime?
+  completedAt DateTime?
+  position    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@index([orgId, projectId])
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  orgId         String
+  category      String
+  amountMinor   Int
+  description   String
+  projectId     String?
+  spentOn       DateTime @default(now())
+  receiptUrl    String?
+  gstDeductible Boolean  @default(false)
+  loggedById    String?
+  createdAt     DateTime @default(now())
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, spentOn])
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  orgId       String
+  ownerId     String
+  title       String
+  metric      String?
+  target      Float?
+  current     Float    @default(0)
+  period      String   @default("WEEKLY") // DAILY | WEEKLY | MONTHLY | QUARTERLY
+  periodStart DateTime
+  done        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, period, periodStart])
+}
+
+model CalendarEvent {
+  id        String    @id @default(cuid())
+  orgId     String
+  creatorId String
+  title     String
+  kind      String    @default("MEETING") // MEETING | FOLLOW_UP | LEAVE
+  startsAt  DateTime
+  endsAt    DateTime?
+  allDay    Boolean   @default(false)
+  location  String?
+  notes     String?
+  clientId  String?
+  createdAt DateTime  @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, startsAt])
+}
+
+model Board {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  kind      String   @default("WHITEBOARD") // WHITEBOARD | MINDMAP
+  dataJson  String   @default("{\"items\":[]}")
+  clientId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, updatedAt])
+}
+
+model PortalInvite {
+  id         String    @id @default(cuid())
+  orgId      String
+  clientId   String
+  name       String
+  email      String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client     Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, clientId])
+}
+
+model Skill {
+  id           String   @id @default(cuid())
+  orgId        String
+  name         String
+  description  String?
+  instructions String
+  scope        String   @default("ALL") // ALL | CLIENT | PROJECT
+  scopeId      String?
+  assignedJson String   @default("[]") // employee keys
+  version      Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
 }

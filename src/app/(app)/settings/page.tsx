@@ -1,142 +1,101 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { auth } from "@/lib/auth";
-import { getOrgContext } from "@/lib/tenancy";
 import { prisma } from "@/lib/db";
+import { pageContext } from "@/lib/page";
 import { planOf } from "@/lib/plans";
 import { getOrCreateSubscription, subscriptionView } from "@/lib/subscription";
-import { Badge, Button, Card, Field, Input, SectionTitle, Select, Table } from "@/components/ui";
-import { generateApiKeyAction } from "@/app/actions/settings";
+import { fmtDate } from "@/lib/format";
+import { PageHeader, Panel, FormGrid, Avatar, DetailRow } from "@/components/kit";
+import { ActionForm } from "@/components/kit-client";
+import { Badge, Field, Input } from "@/components/ui";
+import { updateProfile } from "@/app/actions/settings";
 
-const SETTINGS_SECTIONS = [
-  { href: "/settings/team", label: "Team directory", desc: "Members, roles, invitations, seats" },
-  { href: "/settings/plan", label: "Plan & usage", desc: "Current plan, meters, what is left" },
-  { href: "/settings/company", label: "Company & GST", desc: "Legal identity on invoices" },
-  { href: "/settings/notifications", label: "Notifications", desc: "Org-wide event preferences" },
-  { href: "/settings/privacy", label: "Data & privacy", desc: "Data inventory and protections" },
-  { href: "/settings/audit", label: "Audit log", desc: "Every mutation, filterable" },
-];
+export const metadata: Metadata = { title: "Profile settings", robots: { index: false } };
 
-export const metadata: Metadata = { title: "Settings", robots: { index: false } };
+export default async function ProfileSettingsPage() {
+  const { orgId, userId, role, canWrite: canManage } = await pageContext("org:manage");
 
-export default async function SettingsPage() {
-  const session = await auth();
-  const ctx = await getOrgContext(session!.user!.id);
-
-  const org = await prisma.organization.findUnique({
-    where: { id: ctx!.orgId },
-    select: { name: true, slug: true, plan: true, brandColor: true },
-  });
+  const [user, org, sub] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true, image: true, designation: true, phone: true, weeklyCapacityHours: true },
+    }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { name: true, slug: true, plan: true, createdAt: true } }),
+    getOrCreateSubscription(orgId),
+  ]);
   const plan = planOf(org?.plan);
-  const sub = await getOrCreateSubscription(ctx!.orgId);
   const trial = subscriptionView(sub);
 
-  // One-time invite link (set by inviteMemberAction, cleared on read).
-  const cookieStore = await cookies();
-  const inviteLink = cookieStore.get("bm_invite_link")?.value ?? null;
-  if (inviteLink) {
-    try {
-      cookieStore.delete("bm_invite_link");
-    } catch {
-      // Non-fatal: cookie expires in 60s anyway.
-    }
-  }
-
-  const logs = await prisma.auditLog.findMany({
-    where: { orgId: ctx!.orgId },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-muted">Workspace, plan and security.</p>
-      </div>
+    <>
+      <PageHeader title="Settings" subtitle="Manage how you appear in the workspace and how the workspace is set up." />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {SETTINGS_SECTIONS.map((s) => (
-          <Link
-            key={s.href}
-            href={s.href}
-            className="rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-brand"
-          >
-            <div className="text-sm font-medium">{s.label}</div>
-            <div className="mt-0.5 text-xs text-muted">{s.desc}</div>
-          </Link>
-        ))}
-      </div>
+      <div className="space-y-6">
+        <Panel title="Your profile">
+          <p className="mb-4 text-sm text-muted">How you appear across the workspace: in messages, tasks and the team directory.</p>
+          <div className="mb-5 flex items-center gap-4">
+            <Avatar name={user?.name ?? user?.email} size="lg" src={user?.image} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{user?.name ?? "Unnamed member"}</p>
+              <p className="truncate text-xs text-muted">{user?.designation || "No designation set"}</p>
+            </div>
+            <Badge tone="brand">{role.toLowerCase()}</Badge>
+          </div>
+          <ActionForm action={updateProfile} submitLabel="Save changes" pendingLabel="Saving…" resetOnSuccess={false}>
+            <FormGrid>
+              <Field label="Full name *">
+                <Input name="name" required maxLength={80} defaultValue={user?.name ?? ""} autoComplete="name" />
+              </Field>
+              <div className="flex flex-col gap-1.5">
+                <Field label="Email">
+                  <Input value={user?.email ?? ""} readOnly disabled aria-describedby="email-help" />
+                </Field>
+                <span id="email-help" className="text-[11px] text-muted">
+                  Your email is your sign-in and can&apos;t be changed here.
+                </span>
+              </div>
+              <Field label="Designation">
+                <Input name="designation" maxLength={80} defaultValue={user?.designation ?? ""} placeholder="Senior designer" />
+              </Field>
+              <Field label="Phone">
+                <Input name="phone" type="tel" maxLength={24} defaultValue={user?.phone ?? ""} placeholder="+91 98765 43210" autoComplete="tel" />
+              </Field>
+              <div className="flex flex-col gap-1.5">
+                <Field label="Weekly capacity (hours)">
+                  <Input name="weeklyCapacityHours" type="number" min={0} max={168} step={1} defaultValue={user?.weeklyCapacityHours ?? 40} />
+                </Field>
+                <span className="text-[11px] text-muted">Used for workload views in the team directory.</span>
+              </div>
+            </FormGrid>
+          </ActionForm>
+        </Panel>
 
-      <Card>
-        <SectionTitle>Workspace</SectionTitle>
-        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-          <div><dt className="text-muted">Name</dt><dd className="font-medium">{org?.name}</dd></div>
-          <div><dt className="text-muted">Slug</dt><dd className="font-medium">{org?.slug}</dd></div>
-          <div>
-            <dt className="text-muted">Plan</dt>
-            <dd>
+        <Panel
+          title="Workspace"
+          action={
+            <Link href="/settings/company" className="text-xs text-brand hover:underline">
+              {canManage ? "Edit company details" : "View company details"}
+            </Link>
+          }
+        >
+          <div className="divide-y divide-border">
+            <DetailRow label="Name">{org?.name}</DetailRow>
+            <DetailRow label="Workspace address">
+              <span className="font-mono text-xs">{org?.slug}</span>
+            </DetailRow>
+            <DetailRow label="Plan">
               <Badge tone="brand">{plan.name}</Badge>{" "}
-              {trial.state === "TRIALING" && !trial.expired ? (
+              {trial.state === "TRIALING" && !trial.expired && trial.daysRemaining !== null ? (
                 <span className="text-xs text-muted">
-                  Trial — {trial.daysRemaining} {trial.daysRemaining === 1 ? "day" : "days"} left
-                  {trial.trialEndsAt ? ` (ends ${trial.trialEndsAt.toISOString().slice(0, 10)})` : ""}
+                  Trial: {trial.daysRemaining} {trial.daysRemaining === 1 ? "day" : "days"} left
                 </span>
               ) : null}
-            </dd>
+            </DetailRow>
+            <DetailRow label="Your role">{role.toLowerCase()}</DetailRow>
+            <DetailRow label="Created">{fmtDate(org?.createdAt)}</DetailRow>
           </div>
-          <div><dt className="text-muted">Your role</dt><dd className="font-medium">{ctx!.role}</dd></div>
-        </dl>
-      </Card>
-
-      {inviteLink ? (
-        <Card className="border-brand/50">
-          <SectionTitle>Invitation ready — share it now</SectionTitle>
-          <p className="mt-2 text-sm text-muted">
-            This link works once, for the invited address, and expires in 7 days.
-            It will not be shown again — copy it now.
-          </p>
-          <code className="mt-3 block overflow-x-auto rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm">
-            {inviteLink.startsWith("/") ? inviteLink : `/invite/${inviteLink}`}
-          </code>
-        </Card>
-      ) : null}
-
-      <Card>
-        <SectionTitle>API access</SectionTitle>
-        <p className="mt-2 text-sm text-muted">
-          Generate a scoped API key for programmatic access. The full key is shown
-          once and stored only as a SHA-256 hash.
-        </p>
-        <form action={generateApiKeyAction} className="mt-4">
-          <button
-            type="submit"
-            className="rounded-[var(--radius-control)] border border-border bg-surface-2 px-4 py-2 text-sm font-medium hover:border-brand"
-          >
-            Generate new API key
-          </button>
-        </form>
-      </Card>
-
-      <Card>
-        <SectionTitle>Recent audit log</SectionTitle>
-        <div className="mt-4">
-          <Table head={["When", "Actor", "Action", "Entity"]}>
-            {logs.map((l) => (
-              <tr key={l.id}>
-                <td className="px-4 py-2.5 text-muted">{l.createdAt.toISOString().slice(0, 16).replace("T", " ")}</td>
-                <td className="px-4 py-2.5 text-muted">{l.actorId ? "member" : "system"}</td>
-                <td className="px-4 py-2.5 font-medium">{l.action}</td>
-                <td className="px-4 py-2.5 text-muted">{l.entity}</td>
-              </tr>
-            ))}
-            {logs.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-4 text-center text-muted">No events yet</td></tr>
-            ) : null}
-          </Table>
-        </div>
-      </Card>
-    </div>
+        </Panel>
+      </div>
+    </>
   );
 }
