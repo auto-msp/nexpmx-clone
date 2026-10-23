@@ -157,7 +157,7 @@ export default async function MemoryPage() {
                 <ProgressBar value={Math.min(n, 5)} max={5} tone={n >= 5 ? "success" : "brand"} />
               </div>
               <p className="mt-2 flex-1 text-xs text-muted">{a.blurb}</p>
-              <p className={cx("mt-2 text-xs", n ? "text-success" : "text-muted/80")}>{n ? `${n} saved` : "nothing yet"}</p>
+              <p className={cx("mt-2 text-xs", n ? "text-success" : "text-muted")}>{n ? `${n} saved` : "nothing yet"}</p>
             </Link>
           );
         })}

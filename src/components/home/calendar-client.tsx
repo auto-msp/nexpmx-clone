@@ -128,7 +128,7 @@ export function EventChip({
           title={`${item.time ? `${item.time} · ` : ""}${event.title}`}
           className={cx("flex w-full min-w-0 items-center gap-1 rounded px-1.5 py-0.5 text-left text-xs leading-tight hover:brightness-125", meta.chip)}
         >
-          {timed ? <span className="shrink-0 font-mono text-xs opacity-80">{event.startTime}</span> : null}
+          {timed ? <span className="shrink-0 font-mono text-xs">{event.startTime}</span> : null}
           <span className="truncate font-medium">{event.title}</span>
         </button>
       ) : (

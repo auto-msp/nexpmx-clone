@@ -201,7 +201,7 @@ export function Table({
   children: ReactNode;
 }) {
   return (
-    <div className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface lg:max-h-[calc(100dvh-13rem)] lg:overflow-y-auto">
+    <div tabIndex={0} className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface lg:max-h-[calc(100dvh-13rem)] lg:overflow-y-auto">
       <table className="w-full text-left text-sm">
         <thead>
           <tr>

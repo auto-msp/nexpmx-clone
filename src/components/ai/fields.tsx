@@ -39,7 +39,7 @@ export function EmployeeChips({
         >
           <input type="checkbox" name={name} value={e.key} defaultChecked={on.has(e.key)} className="sr-only" />
           <span className="font-medium">{e.name}</span>
-          {e.role ? <span className="opacity-70">{e.role}</span> : null}
+          {e.role ? <span className="text-muted">{e.role}</span> : null}
         </label>
       ))}
     </div>
@@ -50,7 +50,7 @@ export function FieldLabel({ children, hint }: { children: ReactNode; hint?: str
   return (
     <div className="mb-1.5 flex items-baseline justify-between gap-3">
       <span className="text-xs font-medium text-muted">{children}</span>
-      {hint ? <span className="text-xs text-muted/70">{hint}</span> : null}
+      {hint ? <span className="text-xs text-muted">{hint}</span> : null}
     </div>
   );
 }

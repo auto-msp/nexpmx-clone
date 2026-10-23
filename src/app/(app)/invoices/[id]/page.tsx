@@ -137,7 +137,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             </div>
           </section>
 
-          <section className="overflow-x-auto py-5">
+          <section tabIndex={0} className="overflow-x-auto py-5">
             <table className="w-full min-w-[34rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-muted">

@@ -219,7 +219,7 @@ export function SheetGrid({
       </div>
 
       {/* Grid */}
-      <div ref={gridRef} className="max-h-[60vh] overflow-auto">
+      <div ref={gridRef} tabIndex={0} className="max-h-[60vh] overflow-auto">
         <table className="w-full border-collapse text-xs">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>

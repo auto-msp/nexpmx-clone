@@ -130,7 +130,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                   </span>
                 }
               >
-                <div className="data-table overflow-x-auto">
+                <div tabIndex={0} className="data-table overflow-x-auto">
                   <table className="w-full min-w-[960px] table-fixed text-left text-sm">
                     <thead>
                       <tr className="border-b border-border bg-surface-2 text-xs text-muted">
@@ -168,7 +168,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                               return (
                                 <td key={s} className="px-2 py-2">
                                   {cell.length === 0 ? (
-                                    <div className="rounded-[var(--radius-control)] border border-dashed border-border px-2 py-3 text-center text-xs text-muted/70">0</div>
+                                    <div className="rounded-[var(--radius-control)] border border-dashed border-border px-2 py-3 text-center text-xs text-muted">0</div>
                                   ) : (
                                     <div className="space-y-1.5">
                                       {cell.map((t) => (

@@ -180,7 +180,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                   <li key={q.id}>
                     <p className="text-sm font-medium">{q.question}</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{q.answer}</p>
-                    <p className="mt-1 text-xs text-muted/80">Answered {relTime(q.updatedAt)}</p>
+                    <p className="mt-1 text-xs text-muted">Answered {relTime(q.updatedAt)}</p>
                   </li>
                 ))}
               </ul>
@@ -200,7 +200,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                           <Badge tone="neutral">{areaLabel(f.category)}</Badge>
                         </div>
                         <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{d.value}</p>
-                        <p className="mt-1 text-xs text-muted/80">Answered {relTime(f.updatedAt)}</p>
+                        <p className="mt-1 text-xs text-muted">Answered {relTime(f.updatedAt)}</p>
                       </li>
                     );
                   })}

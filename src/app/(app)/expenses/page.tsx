@@ -100,7 +100,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
         />
       ) : (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_18rem]">
-          <div className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
+          <div tabIndex={0} className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
             <table className="w-full min-w-[44rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface-2 text-xs text-muted">

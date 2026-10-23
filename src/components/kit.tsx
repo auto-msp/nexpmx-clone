@@ -189,11 +189,11 @@ export function Avatar({ name, size = "md", src }: { name: string | null | undef
   );
 }
 
-export function ProgressBar({ value, max = 100, tone = "brand" }: { value: number; max?: number; tone?: "brand" | "success" | "warn" | "danger" }) {
+export function ProgressBar({ value, max = 100, tone = "brand", label = "Progress" }: { value: number; max?: number; tone?: "brand" | "success" | "warn" | "danger"; label?: string }) {
   const pct = Math.max(0, Math.min(100, Math.round((value / Math.max(1, max)) * 100)));
   const bar = { brand: "bg-brand", success: "bg-success", warn: "bg-warn", danger: "bg-danger" }[tone];
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-border" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-border" role="progressbar" aria-label={label} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
       <div className={cx("h-full rounded-full", bar)} style={{ width: `${pct}%` }} />
     </div>
   );

@@ -124,7 +124,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
             {items.length === 0 ? (
               <p className="text-sm text-muted">No line items. Total {inr(p.amountMinor)}.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div tabIndex={0} className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-border text-xs text-muted">

@@ -30,7 +30,7 @@ function OverlayItem({ item, variant }: { item: CalItem; variant: "chip" | "row"
   const meta = KIND_META[item.kind];
   const body =
     variant === "chip" ? (
-      <span className={cx("flex w-full min-w-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs leading-tight hover:brightness-125", meta.chip)}>
+      <span className={cx("flex min-h-6 w-full min-w-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs leading-tight hover:brightness-125", meta.chip)}>
         <span className="truncate">{item.title}</span>
       </span>
     ) : (
@@ -94,7 +94,7 @@ export function MonthView({ data, today, focus, href, clients, canWrite }: ViewP
                 data-compact
                 className={cx(
                   "relative mb-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs after:absolute after:-inset-2.5 after:content-['']",
-                  isToday ? "bg-brand font-semibold text-on-brand" : outside ? "text-muted/60 hover:text-text" : "text-text hover:bg-surface-2",
+                  isToday ? "bg-brand font-semibold text-on-brand" : outside ? "text-muted hover:text-text" : "text-text hover:bg-surface-2",
                 )}
               >
                 {Number(key.slice(8, 10))}
@@ -104,7 +104,7 @@ export function MonthView({ data, today, focus, href, clients, canWrite }: ViewP
                   <Item key={it.key} item={it} variant="chip" clients={clients} canWrite={canWrite} />
                 ))}
                 {extra > 0 ? (
-                  <Link href={href("day", key)} className="block px-1.5 text-xs text-muted hover:text-brand">
+                  <Link href={href("day", key)} className="block min-h-6 px-1.5 py-1 text-xs text-muted hover:text-brand">
                     +{extra} more
                   </Link>
                 ) : null}
@@ -141,7 +141,7 @@ export function WeekView({ data, today, focus, href, clients, canWrite }: ViewPr
               <span className={cx("text-sm font-semibold", isToday && "text-brand")}>{fmtKey(key, { day: "numeric", month: "short" })}</span>
             </Link>
             {items.length === 0 ? (
-              <p className="text-xs text-muted/70">Free</p>
+              <p className="text-xs text-muted">Free</p>
             ) : (
               <div className="space-y-1">
                 {items.map((it) => (

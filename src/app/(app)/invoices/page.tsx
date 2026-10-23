@@ -89,7 +89,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
       ) : visible.length === 0 ? (
         <EmptyPanel icon="search" title="No invoices match" hint="Change the status tab, client or search." />
       ) : (
-        <div className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
+        <div tabIndex={0} className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
           <table className="w-full min-w-[46rem] text-left text-sm">
             <thead>
               <tr className="border-b border-border bg-surface-2 text-xs text-muted">

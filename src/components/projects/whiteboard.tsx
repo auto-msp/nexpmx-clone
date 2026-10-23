@@ -612,7 +612,7 @@ export function Whiteboard({
                       it.type === "text" && "font-medium",
                     )}
                   >
-                    {it.text || <span className="text-muted/70">{canWrite ? "Double-click to edit" : ""}</span>}
+                    {it.text || <span className="text-muted">{canWrite ? "Double-click to edit" : ""}</span>}
                   </div>
                 )}
                 {selected && single?.id === it.id && canWrite && !isEditing ? (

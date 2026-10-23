@@ -104,9 +104,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
             <Link
               key={k}
               href={href(view, focus, next)}
-              aria-pressed={!off}
               title={off ? `Show ${meta.plural.toLowerCase()}` : `Hide ${meta.plural.toLowerCase()}`}
-              className={cx("inline-flex items-center gap-1.5 text-xs", off ? "text-muted/60 line-through" : "text-muted hover:text-text")}
+              className={cx("inline-flex items-center gap-1.5 text-xs", off ? "text-muted line-through" : "text-muted hover:text-text")}
             >
               <span aria-hidden className={cx("h-2.5 w-2.5 rounded-full", meta.dot, off && "opacity-40")} />
               {meta.plural}
