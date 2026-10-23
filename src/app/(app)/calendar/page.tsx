@@ -110,7 +110,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
             >
               <span aria-hidden className={cx("h-2.5 w-2.5 rounded-full", meta.dot, off && "opacity-40")} />
               {meta.plural}
-              {!off ? <span className="font-mono text-[10px]">{data.counts[k]}</span> : null}
+              {!off ? <span className="font-mono text-xs">{data.counts[k]}</span> : null}
             </Link>
           );
         })}

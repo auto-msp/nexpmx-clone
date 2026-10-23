@@ -167,7 +167,7 @@ export function ImportFlow({ importAction, canWrite }: { importAction: Act; canW
           ))}
         </div>
         <div className="mt-4 rounded-[var(--radius-control)] border border-border bg-surface-2/60 p-4">
-          <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Where to find it</h3>
+          <h3 className="text-xs font-semibold text-muted">Where to find it</h3>
           <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted">
             {active.steps.map((s) => (
               <li key={s}>{s}</li>

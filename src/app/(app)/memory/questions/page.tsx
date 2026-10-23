@@ -91,7 +91,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
           {current ? (
             <section className="rounded-[var(--radius-card)] border border-border bg-surface p-6" aria-label="Guided question">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">{areaLabel(current.area)}</span>
+                <span className="text-xs font-semibold text-brand">{areaLabel(current.area)}</span>
                 <span className="text-xs text-muted">{position} of {remaining.length}</span>
               </div>
               <h2 className="mt-3 text-lg font-semibold leading-snug">{current.text}</h2>
@@ -138,7 +138,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                         <ActionButton action={deleteMemoryQuestion} fields={{ id: q.id }} label="Remove question" icon="trash" variant="ghost" onlyIcon confirm="Remove this question?" />
                       ) : null}
                     </div>
-                    <p className="mt-0.5 text-[11px] text-muted">Asked {relTime(q.createdAt)}</p>
+                    <p className="mt-0.5 text-xs text-muted">Asked {relTime(q.createdAt)}</p>
                     {canWrite ? (
                       <ActionForm action={answerMemoryQuestion} submitLabel="Save answer" className="mt-3">
                         <input type="hidden" name="id" value={q.id} />
@@ -180,7 +180,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                   <li key={q.id}>
                     <p className="text-sm font-medium">{q.question}</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{q.answer}</p>
-                    <p className="mt-1 text-[11px] text-muted/80">Answered {relTime(q.updatedAt)}</p>
+                    <p className="mt-1 text-xs text-muted/80">Answered {relTime(q.updatedAt)}</p>
                   </li>
                 ))}
               </ul>
@@ -200,7 +200,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                           <Badge tone="neutral">{areaLabel(f.category)}</Badge>
                         </div>
                         <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{d.value}</p>
-                        <p className="mt-1 text-[11px] text-muted/80">Answered {relTime(f.updatedAt)}</p>
+                        <p className="mt-1 text-xs text-muted/80">Answered {relTime(f.updatedAt)}</p>
                       </li>
                     );
                   })}

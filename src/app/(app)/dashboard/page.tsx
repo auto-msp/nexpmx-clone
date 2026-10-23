@@ -247,7 +247,7 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Hero */}
       <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:p-6">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-brand">
+        <div className="text-xs font-semibold text-brand">
           {fmtKey(today, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -376,7 +376,7 @@ export default async function DashboardPage() {
                         <span className="block truncate text-xs text-muted">{p.client?.name ?? "Internal"}</span>
                       </div>
                       <div>
-                        <div className="mb-1 flex justify-between text-[11px] text-muted">
+                        <div className="mb-1 flex justify-between text-xs text-muted">
                           <span>
                             {done}/{total} tasks
                           </span>
@@ -481,7 +481,7 @@ export default async function DashboardPage() {
               })}
             </ul>
             <div className="mt-4">
-              <div className="mb-1 flex justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+              <div className="mb-1 flex justify-between text-xs text-muted">
                 <span>AI credits</span>
                 <span>
                   {creditsUsed}/{plan.aiCreditsPerMonth}

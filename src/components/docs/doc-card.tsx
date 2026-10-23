@@ -26,7 +26,7 @@ export function TypeTile({ mime, size = "md" }: { mime: string; size?: "sm" | "m
       aria-hidden
       className={cx(
         "inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] font-mono font-semibold tracking-wider",
-        size === "md" ? "h-11 w-11 text-[11px]" : "h-8 w-8 text-[9px]",
+        size === "md" ? "h-11 w-11 text-xs" : "h-8 w-8 text-xs",
         t.tone,
       )}
     >
@@ -50,7 +50,7 @@ export function DocCard({ doc, canWrite }: { doc: DocRow; canWrite: boolean }) {
           </p>
         </div>
       </div>
-      <div className="flex flex-wrap gap-1.5 text-[11px]">
+      <div className="flex flex-wrap gap-1.5 text-xs">
         <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{formatBytes(doc.sizeBytes)}</span>
         {linked.length > 0 ? (
           linked.map((l) => (

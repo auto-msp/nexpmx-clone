@@ -57,6 +57,7 @@ const P: Record<string, string> = {
   eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
   brain: "M12 5a3 3 0 0 0-5.5 1.5A3.5 3.5 0 0 0 5 13a3.5 3.5 0 0 0 4 4.5A3 3 0 0 0 12 19zM12 5a3 3 0 0 1 5.5 1.5A3.5 3.5 0 0 1 19 13a3.5 3.5 0 0 1-4 4.5A3 3 0 0 1 12 19zM12 5v14",
   zap: "M13 2L4 14h7l-1 8 9-12h-7z",
+  menu: "M4 6h16M4 12h16M4 18h16",
 };
 
 export type IconName = keyof typeof P;
@@ -67,7 +68,7 @@ export function Icon({ name, className, ...rest }: { name: IconName | string; cl
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.75"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden

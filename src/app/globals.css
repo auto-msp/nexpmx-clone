@@ -200,6 +200,57 @@ html[data-theme="light"] {
   }
 }
 
+/* ── Components that need more than utilities ───────────────────────────── */
+
+/* Loading state: label stays put, a small ring replaces nothing (no layout shift). */
+button[aria-busy="true"]::before {
+  content: "";
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  animation: bm-spin 0.7s linear infinite;
+}
+@keyframes bm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Data tables: row hover, hairline rows, first column pinned when scrolled sideways. */
+.data-table tbody tr {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.data-table tbody tr:hover {
+  background: var(--color-surface-2);
+}
+.data-table td {
+  vertical-align: middle;
+}
+@media (max-width: 767px) {
+  .data-table th:first-child,
+  .data-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-surface);
+    box-shadow: 1px 0 0 var(--color-border);
+  }
+  .data-table th:first-child {
+    z-index: 11;
+    background: var(--color-surface-2);
+  }
+  .data-table tbody tr:hover td:first-child {
+    background: var(--color-surface-2);
+  }
+  .data-table td,
+  .data-table th {
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

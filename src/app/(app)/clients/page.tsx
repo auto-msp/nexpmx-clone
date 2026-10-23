@@ -218,11 +218,11 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
                     <dd className={cx("mt-0.5 flex items-center gap-1 font-medium", f.overdue && "text-danger")}>
                       <Icon name="calendar" className="h-3.5 w-3.5" />
                       {f.text}
-                      {f.overdue ? <span className="text-[10px] uppercase tracking-wide">overdue</span> : null}
+                      {f.overdue ? <span className="text-xs ">overdue</span> : null}
                     </dd>
                   </div>
                 </dl>
-                {c.status === "ARCHIVED" ? <div className="text-[11px] uppercase tracking-wide text-muted">Archived</div> : null}
+                {c.status === "ARCHIVED" ? <div className="text-xs text-muted">Archived</div> : null}
               </Link>
             );
           })}

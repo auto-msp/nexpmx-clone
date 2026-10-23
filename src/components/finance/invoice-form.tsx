@@ -166,7 +166,7 @@ export function InvoiceForm({
 
       <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
         <h2 className="mb-3 text-sm font-semibold">Line items</h2>
-        <div className="hidden grid-cols-[2rem_1fr_5rem_6rem_7rem_5rem_7rem_2rem] gap-2 px-1 pb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted lg:grid">
+        <div className="hidden grid-cols-[2rem_1fr_5rem_6rem_7rem_5rem_7rem_2rem] gap-2 px-1 pb-1 text-xs text-muted lg:grid">
           <span>#</span>
           <span>Description</span>
           <span>Qty</span>

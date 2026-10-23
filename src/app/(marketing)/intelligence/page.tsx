@@ -30,7 +30,7 @@ export default function IntelligencePage() {
         {ESSAYS.map((e) => (
           <Card key={e.title}>
             <h2 className="text-lg font-semibold">{e.title}</h2>
-            <p className="mt-1 text-xs uppercase tracking-wider text-muted">
+            <p className="mt-1 text-xs text-muted">
               {e.author} · {e.readMinutes} min read
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted">{e.summary}</p>

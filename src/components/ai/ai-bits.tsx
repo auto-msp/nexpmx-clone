@@ -64,7 +64,7 @@ export function SwitchAction({
           className={cx("absolute h-3.5 w-3.5 rounded-full bg-white shadow transition-all", on ? "left-[18px]" : "left-0.5")}
         />
       </button>
-      {error ? <span className="mt-1 max-w-[16rem] text-right text-[11px] text-danger">{error}</span> : null}
+      {error ? <span className="mt-1 max-w-[16rem] text-right text-xs text-danger">{error}</span> : null}
     </span>
   );
 }
@@ -107,7 +107,7 @@ export function WideActionButton({
         {done ? (doneLabel ?? "Added") : pending ? "Working…" : label}
       </Button>
       {error ? (
-        <p role="alert" className="mt-1.5 text-[11px] text-danger">
+        <p role="alert" className="mt-1.5 text-xs text-danger">
           {error}
         </p>
       ) : null}
@@ -147,7 +147,7 @@ export function ScopePicker({
 }) {
   const [scope, setScope] = useState(defaultScope);
   const select =
-    "w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand focus:outline-none";
+    "w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand";
   return (
     <div className="flex flex-col gap-2">
       <div role="radiogroup" className="inline-flex w-full flex-wrap gap-1 rounded-full border border-border bg-surface-2 p-1 sm:w-auto sm:self-start">
@@ -184,7 +184,7 @@ export function ScopePicker({
           ))}
         </select>
       ) : null}
-      <p className="text-[11px] text-muted">{scope === "ALL" && helpAll ? helpAll : SCOPE_HELP[scope]}</p>
+      <p className="text-xs text-muted">{scope === "ALL" && helpAll ? helpAll : SCOPE_HELP[scope]}</p>
     </div>
   );
 }

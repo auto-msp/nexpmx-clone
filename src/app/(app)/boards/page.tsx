@@ -83,7 +83,7 @@ export default async function BoardsPage() {
                   ) : null}
                 </div>
                 <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
-                  <span className="text-[11px] text-muted">Updated {relTime(b.updatedAt)}</span>
+                  <span className="text-xs text-muted">Updated {relTime(b.updatedAt)}</span>
                   <div className="flex items-center gap-1">
                     <Link
                       href={`/boards/${b.id}`}

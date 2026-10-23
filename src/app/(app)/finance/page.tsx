@@ -127,7 +127,7 @@ export default async function FinancePage() {
             <div key={s.label} className="relative rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
               <span className={`absolute inset-x-0 top-0 h-0.5 rounded-t ${s.bar}`} aria-hidden />
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{s.label}</span>
+                <span className="text-xs font-semibold text-muted">{s.label}</span>
                 {i < pipeline.length - 1 ? <Icon name="chevronRight" className="hidden h-3.5 w-3.5 text-muted lg:block" /> : null}
               </div>
               <div className={`mt-1 text-2xl font-semibold tabular-nums ${s.tone}`}>{s.list.length}</div>
@@ -147,7 +147,7 @@ export default async function FinancePage() {
                     <div className="w-3 rounded-t bg-success sm:w-5" style={{ height: `${c.cashIn ? Math.max(3, (c.cashIn / chartMax) * 100) : 0}%` }} title={`Cash in ${inr(c.cashIn)}`} />
                     <div className="w-3 rounded-t bg-danger sm:w-5" style={{ height: `${c.cashOut ? Math.max(3, (c.cashOut / chartMax) * 100) : 0}%` }} title={`Cash out ${inr(c.cashOut)}`} />
                   </div>
-                  <span className="text-[10px] text-muted">{monthLabel(c.key).split(" ")[0]}</span>
+                  <span className="text-xs text-muted">{monthLabel(c.key).split(" ")[0]}</span>
                 </div>
               ))}
             </div>

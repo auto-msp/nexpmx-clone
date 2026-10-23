@@ -103,7 +103,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
           <div className="overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
             <table className="w-full min-w-[44rem] text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-surface-2/60 text-xs uppercase tracking-wider text-muted">
+                <tr className="border-b border-border bg-surface-2/60 text-xs text-muted">
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Category</th>
                   <th className="px-4 py-3 font-medium">Description</th>

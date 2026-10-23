@@ -97,7 +97,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         <article className="print-doc rounded-[var(--radius-card)] border border-border bg-surface p-6 sm:p-8">
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
             <div>
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">{org?.gstin ? "Tax invoice" : "Invoice"}</div>
+              <div className="text-xs font-semibold text-muted">{org?.gstin ? "Tax invoice" : "Invoice"}</div>
               <h2 className="mt-1 text-2xl font-semibold tracking-tight">{inv.number}</h2>
             </div>
             <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1 text-sm">
@@ -122,13 +122,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
           <section className="grid grid-cols-1 gap-5 border-b border-border py-5 text-sm sm:grid-cols-2">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">From</div>
+              <div className="text-xs text-muted">From</div>
               <div className="mt-1 font-medium">{org?.name}</div>
               {sellerAddress ? <div className="text-muted">{sellerAddress}</div> : null}
               {inv.gstinSnapshot || org?.gstin ? <div className="text-muted">GSTIN {inv.gstinSnapshot ?? org?.gstin}</div> : null}
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Bill to</div>
+              <div className="text-xs text-muted">Bill to</div>
               <div className="mt-1 font-medium">{inv.client.name}</div>
               {inv.client.company ? <div className="text-muted">{inv.client.company}</div> : null}
               {buyerAddress ? <div className="text-muted">{buyerAddress}</div> : null}
@@ -183,19 +183,19 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <section className="grid grid-cols-1 gap-4 border-t border-border pt-5 text-sm sm:grid-cols-2">
               {inv.notes ? (
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Notes</div>
+                  <div className="text-xs text-muted">Notes</div>
                   <p className="mt-1 whitespace-pre-wrap">{inv.notes}</p>
                 </div>
               ) : null}
               {inv.terms ? (
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Terms</div>
+                  <div className="text-xs text-muted">Terms</div>
                   <p className="mt-1 whitespace-pre-wrap">{inv.terms}</p>
                 </div>
               ) : null}
               {inv.bankDetails ? (
                 <div className="sm:col-span-2">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Bank details</div>
+                  <div className="text-xs text-muted">Bank details</div>
                   <p className="mt-1 whitespace-pre-wrap">{inv.bankDetails}</p>
                 </div>
               ) : null}

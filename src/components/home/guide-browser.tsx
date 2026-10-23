@@ -44,7 +44,7 @@ export function GuideBrowser() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search the help articles…"
           aria-label="Search help articles"
-          className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 py-2.5 pl-9 pr-3 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+          className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 py-2.5 pl-9 pr-3 text-sm text-text focus:border-brand"
         />
       </div>
 
@@ -79,7 +79,7 @@ export function GuideBrowser() {
                     <span className="block text-sm font-semibold">{c.label}</span>
                     <span className="block truncate text-xs text-muted">{c.blurb}</span>
                   </span>
-                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-muted">{c.articles.length}</span>
+                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{c.articles.length}</span>
                   {!searching ? <Icon name={open ? "chevronDown" : "chevronRight"} className="h-4 w-4 text-muted" /> : null}
                 </button>
                 {open ? (
@@ -105,7 +105,7 @@ export function GuideBrowser() {
                               <ol className="space-y-2.5">
                                 {a.steps.map((s, i) => (
                                   <li key={i} className="flex gap-3 text-sm">
-                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-2 font-mono text-[10px] text-muted">{i + 1}</span>
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-2 font-mono text-xs text-muted">{i + 1}</span>
                                     <span className="min-w-0 leading-relaxed">{s}</span>
                                   </li>
                                 ))}

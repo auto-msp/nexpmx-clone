@@ -3,7 +3,7 @@ import { cx } from "@/components/ui";
 
 // Same look as the shared form controls, but className MERGES instead of replacing.
 const base =
-  "w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none";
+  "w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand";
 
 export function Input({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cx(base, className)} {...p} />;
@@ -50,7 +50,7 @@ export function FieldLabel({ children, hint }: { children: ReactNode; hint?: str
   return (
     <div className="mb-1.5 flex items-baseline justify-between gap-3">
       <span className="text-xs font-medium text-muted">{children}</span>
-      {hint ? <span className="text-[11px] text-muted/70">{hint}</span> : null}
+      {hint ? <span className="text-xs text-muted/70">{hint}</span> : null}
     </div>
   );
 }

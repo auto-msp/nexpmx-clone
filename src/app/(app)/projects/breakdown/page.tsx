@@ -133,7 +133,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[960px] table-fixed text-left text-sm">
                     <thead>
-                      <tr className="border-b border-border bg-surface-2/60 text-[10px] uppercase tracking-[0.14em] text-muted">
+                      <tr className="border-b border-border bg-surface-2/60 text-xs text-muted">
                         <th className="w-52 px-4 py-3 font-mono font-semibold">Milestone</th>
                         {TASK_STATUSES.map((s) => (
                           <th key={s} className="px-3 py-3 font-mono font-semibold">
@@ -159,7 +159,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                                 <div className="min-w-0">
                                   <div className="break-words font-medium">{r.name}</div>
                                   <div className="text-xs text-muted">{r.hint ?? (r.dueDate ? `Due ${fmtDate(r.dueDate)}` : "No due date")}</div>
-                                  <div className="mt-1 text-[11px] text-muted">{rowTasks.length} task{rowTasks.length === 1 ? "" : "s"}</div>
+                                  <div className="mt-1 text-xs text-muted">{rowTasks.length} task{rowTasks.length === 1 ? "" : "s"}</div>
                                 </div>
                               </div>
                             </td>
@@ -168,7 +168,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                               return (
                                 <td key={s} className="px-2 py-2">
                                   {cell.length === 0 ? (
-                                    <div className="rounded-[var(--radius-control)] border border-dashed border-border px-2 py-3 text-center text-[11px] text-muted/70">0</div>
+                                    <div className="rounded-[var(--radius-control)] border border-dashed border-border px-2 py-3 text-center text-xs text-muted/70">0</div>
                                   ) : (
                                     <div className="space-y-1.5">
                                       {cell.map((t) => (
@@ -193,7 +193,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                               );
                             })}
                             <td className="px-4 py-3">
-                              <div className="mb-1 flex items-center justify-between text-[11px] text-muted">
+                              <div className="mb-1 flex items-center justify-between text-xs text-muted">
                                 <span>{rowDone}/{rowTasks.length}</span>
                                 <span>{rowPct}%</span>
                               </div>

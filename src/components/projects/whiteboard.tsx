@@ -653,7 +653,7 @@ export function Whiteboard({
         ) : null}
       </div>
 
-      <p className="text-[11px] text-muted">
+      <p className="text-xs text-muted">
         Shift+click selects several · Delete removes · Ctrl/Cmd+D duplicates · double-click or Enter edits · drag empty space to pan · scroll to zoom
         {isMind ? " · click a line to select it" : ""}
       </p>

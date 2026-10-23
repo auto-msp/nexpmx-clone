@@ -48,7 +48,7 @@ export function SettingsNav() {
     >
       {GROUPS.map((g) => (
         <div key={g.label} className="flex shrink-0 gap-1 lg:flex-col">
-          <div className="hidden px-3 pb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted lg:block">{g.label}</div>
+          <div className="hidden px-3 pb-1 text-xs font-semibold text-muted lg:block">{g.label}</div>
           {g.items.map((it) => {
             const active = isActive(it.href);
             return (

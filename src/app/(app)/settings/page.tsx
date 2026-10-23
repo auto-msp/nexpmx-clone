@@ -50,7 +50,7 @@ export default async function ProfileSettingsPage() {
                 <Field label="Email">
                   <Input value={user?.email ?? ""} readOnly disabled aria-describedby="email-help" />
                 </Field>
-                <span id="email-help" className="text-[11px] text-muted">
+                <span id="email-help" className="text-xs text-muted">
                   Your email is your sign-in and can&apos;t be changed here.
                 </span>
               </div>
@@ -64,7 +64,7 @@ export default async function ProfileSettingsPage() {
                 <Field label="Weekly capacity (hours)">
                   <Input name="weeklyCapacityHours" type="number" min={0} max={168} step={1} defaultValue={user?.weeklyCapacityHours ?? 40} />
                 </Field>
-                <span className="text-[11px] text-muted">Used for workload views in the team directory.</span>
+                <span className="text-xs text-muted">Used for workload views in the team directory.</span>
               </div>
             </FormGrid>
           </ActionForm>

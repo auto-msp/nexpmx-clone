@@ -211,7 +211,7 @@ export function SheetGrid({
           }}
           placeholder="Enter value or formula… (=SUM(A1:A10))"
           aria-label={`Value for cell ${active}`}
-          className="flex-1 rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-1.5 font-mono text-xs text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+          className="flex-1 rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-1.5 font-mono text-xs text-text focus:border-brand"
         />
         <span className="hidden w-32 truncate text-right font-mono text-xs text-muted sm:block" title="Computed value">
           {activeDisplay}
@@ -223,11 +223,11 @@ export function SheetGrid({
         <table className="w-full border-collapse text-xs">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>
-              <th className="w-10 border-b border-r border-border bg-surface-2/60 px-1 py-1 text-[10px] font-normal text-muted" />
+              <th className="w-10 border-b border-r border-border bg-surface-2/60 px-1 py-1 text-xs font-normal text-muted" />
               {Array.from({ length: GRID_COLS }, (_, c) => (
                 <th
                   key={c}
-                  className="border-b border-r border-border bg-surface-2/60 px-1 py-1 text-[10px] font-medium text-muted"
+                  className="border-b border-r border-border bg-surface-2/60 px-1 py-1 text-xs font-medium text-muted"
                 >
                   {colLetter(c)}
                 </th>
@@ -237,7 +237,7 @@ export function SheetGrid({
           <tbody>
             {Array.from({ length: usedRows }, (_, r) => (
               <tr key={r}>
-                <td className="border-b border-r border-border bg-surface-2/60 px-1 py-0.5 text-center text-[10px] text-muted">
+                <td className="border-b border-r border-border bg-surface-2/60 px-1 py-0.5 text-center text-xs text-muted">
                   {r + 1}
                 </td>
                 {Array.from({ length: GRID_COLS }, (_, c) => {
@@ -285,7 +285,7 @@ export function SheetGrid({
                             }
                             if (e.key === "Escape") setEditing(null);
                           }}
-                          className="w-full bg-transparent font-mono text-xs text-text focus:outline-none"
+                          className="w-full bg-transparent font-mono text-xs text-text"
                         />
                       ) : (
                         <span className="block truncate font-mono text-text">{computed}</span>

@@ -244,7 +244,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
                     ) : (
                       <div>{content}</div>
                     )}
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span>{relTime(e.at)}</span>
                       {!e.stored ? <Badge tone="neutral">Live</Badge> : null}
                       {e.unread ? <span className="text-brand">New</span> : null}

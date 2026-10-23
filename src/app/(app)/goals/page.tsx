@@ -174,7 +174,7 @@ export default async function GoalsPage({ searchParams }: { searchParams: Promis
           {current.length ? <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">{current.map(card)}</ul> : null}
           {carried.length ? (
             <section>
-              <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Carried over from earlier periods</h2>
+              <h2 className="mb-2 text-xs font-semibold text-muted">Carried over from earlier periods</h2>
               <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">{carried.map(card)}</ul>
             </section>
           ) : null}

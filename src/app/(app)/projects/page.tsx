@@ -137,13 +137,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
                 <td className="px-4 py-3"><HealthBadge health={p.health} /></td>
                 <td className="px-4 py-3">
                   <div className="w-28">
-                    <div className="mb-1 text-[11px] text-muted">{t.done}/{t.all} tasks</div>
+                    <div className="mb-1 text-xs text-muted">{t.done}/{t.all} tasks</div>
                     <ProgressBar value={t.done} max={t.all || 1} tone="success" />
                   </div>
                 </td>
                 <td className={cx("px-4 py-3", DEADLINE_TEXT[dl.tone])}>
                   {p.deadline ? fmtDate(p.deadline) : "—"}
-                  <div className="text-[11px]">{dl.text}</div>
+                  <div className="text-xs">{dl.text}</div>
                 </td>
                 <td className="px-4 py-3">{p.contractValueMinor ? inr(p.contractValueMinor) : "—"}</td>
               </tr>

@@ -124,7 +124,7 @@ export default async function WhatWeKnowPage({ searchParams }: { searchParams: P
                     <div className="min-w-0 flex-1 basis-64">
                       <p className="text-sm font-medium">{d.title}</p>
                       <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{d.value}</p>
-                      <p className="mt-1.5 text-[11px] text-muted/80">Updated {relTime(f.updatedAt)}</p>
+                      <p className="mt-1.5 text-xs text-muted/80">Updated {relTime(f.updatedAt)}</p>
                     </div>
                     {canWrite ? (
                       <div className="flex items-center gap-1">

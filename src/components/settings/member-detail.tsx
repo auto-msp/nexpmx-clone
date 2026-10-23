@@ -186,15 +186,15 @@ export async function MemberDetail({
           <Panel title="Capacity">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Weekly capacity</p>
+                <p className="text-xs font-semibold text-muted">Weekly capacity</p>
                 <p className="mt-1 text-2xl font-semibold">{member.weeklyCapacityHours}h</p>
               </div>
               <div>
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Open tasks</p>
+                <p className="text-xs font-semibold text-muted">Open tasks</p>
                 <p className="mt-1 text-2xl font-semibold">{open.length}</p>
               </div>
               <div>
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Hours per open task</p>
+                <p className="text-xs font-semibold text-muted">Hours per open task</p>
                 <p className="mt-1 text-2xl font-semibold">{open.length > 0 ? `${(member.weeklyCapacityHours / open.length).toFixed(1)}h` : "n/a"}</p>
               </div>
             </div>

@@ -225,7 +225,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             ) : (
               <div className="space-y-6">
                 <section>
-                  <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Folders</h2>
+                  <h2 className="mb-2 text-xs font-semibold text-muted">Folders</h2>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {activeClients.map((c) => (
                       <FolderTile key={c.id} to={href({ folder: `client:${c.id}` })} icon="building" name={c.name} count={clientCount.get(c.id) ?? 0} />
@@ -235,7 +235,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 </section>
                 {projects.length > 0 ? (
                   <section>
-                    <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Project folders</h2>
+                    <h2 className="mb-2 text-xs font-semibold text-muted">Project folders</h2>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {projects.map((p) => (
                         <FolderTile key={p.id} to={href({ folder: `project:${p.id}` })} icon="tasks" name={p.name} count={projectCount.get(p.id) ?? 0} />

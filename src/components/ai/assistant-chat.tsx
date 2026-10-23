@@ -147,7 +147,7 @@ export function AssistantChat({
                         <p className="whitespace-pre-wrap leading-relaxed">{t.answer}</p>
                         {t.state === "done" && t.sources && t.sources.length > 0 ? (
                           <div className="mt-3 border-t border-border pt-3">
-                            <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Sources</h3>
+                            <h3 className="text-xs font-semibold text-muted">Sources</h3>
                             <ul className="mt-1.5 space-y-1 text-xs text-muted">
                               {t.sources.map((s, i) => (
                                 <li key={i}>
@@ -185,14 +185,14 @@ export function AssistantChat({
               onChange={(e) => setInput(e.target.value)}
               maxLength={300}
               placeholder="e.g. What did we decide about pricing for our biggest client?"
-              className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+              className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand"
             />
           </label>
           <Button type="submit" disabled={input.trim().length < 3}>
             <Icon name="send" /> Ask
           </Button>
         </form>
-        <p className="border-t border-border px-4 py-2 text-[11px] text-muted">
+        <p className="border-t border-border px-4 py-2 text-xs text-muted">
           {remaining.toLocaleString("en-IN")} of {creditsLimit.toLocaleString("en-IN")} AI credits left this cycle.
         </p>
       </section>

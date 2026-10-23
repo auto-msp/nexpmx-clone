@@ -245,7 +245,7 @@ export default async function CioPage() {
               minLength={3}
               maxLength={300}
               placeholder="e.g. Who owes us money and how much?"
-              className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+              className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand"
             />
           </label>
           <Button type="submit">

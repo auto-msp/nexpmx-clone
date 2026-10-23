@@ -31,40 +31,73 @@ export function Modal({
   children: ReactNode;
 }) {
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // Remember the trigger so focus returns to it on close; move focus into the dialog.
+    const trigger = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      Array.from(
+        panelRef.current?.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"],[tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+    const raf = requestAnimationFrame(() => (focusables()[1] ?? focusables()[0] ?? panelRef.current)?.focus());
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onClose();
+      if (e.key !== "Tab") return;
+      const f = focusables();
+      if (f.length === 0) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      trigger?.focus?.();
     };
   }, [open, onClose]);
   if (!open || !mounted) return null;
   const w = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", xl: "max-w-5xl" }[size];
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:py-12"
+      className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-black/50 sm:items-start sm:p-4 sm:py-12"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div className={cx("w-full rounded-[var(--radius-card)] border border-border bg-surface shadow-2xl", w)}>
-        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className={cx(
+          "max-h-[92dvh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-surface shadow-[var(--shadow-modal)] outline-none sm:max-h-none sm:rounded-[var(--radius-card)]",
+          w,
+        )}
+      >
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border bg-surface px-4 py-3 sm:px-5 sm:py-4">
           <div>
-            <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-            {description ? <p className="mt-0.5 text-xs text-muted">{description}</p> : null}
+            <h2 className="text-lg font-semibold text-text">{title}</h2>
+            {description ? <p className="mt-0.5 text-sm text-muted">{description}</p> : null}
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-muted hover:bg-surface-2 hover:text-text">
+          <button type="button" onClick={onClose} aria-label="Close" className="-mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-muted hover:bg-surface-2 hover:text-text max-md:min-w-11">
             <Icon name="x" />
           </button>
         </div>
         <ModalCtx.Provider value={{ close: onClose }}>
-          <div className="px-5 py-4">{children}</div>
+          <div className="px-4 py-4 sm:px-5">{children}</div>
         </ModalCtx.Provider>
       </div>
     </div>,
@@ -189,17 +222,19 @@ export function ActionForm({
     >
       {children}
       {error ? (
-        <p role="alert" className="rounded-[var(--radius-control)] border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error}
+        <p role="alert" className="flex items-start gap-2 rounded-[var(--radius-control)] border border-danger/50 bg-danger-soft px-3 py-2 text-sm text-danger">
+          <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{error}</span>
         </p>
       ) : null}
       {done && !closeModal ? (
-        <p role="status" className="rounded-[var(--radius-control)] border border-success/40 bg-success/10 px-3 py-2 text-sm text-success">
-          {done}
+        <p role="status" className="flex items-start gap-2 rounded-[var(--radius-control)] border border-success/50 bg-success-soft px-3 py-2 text-sm text-success">
+          <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{done}</span>
         </p>
       ) : null}
       {!hideSubmit ? (
-        <div className={cx("flex items-center justify-end gap-2", footerClassName)}>
+        <div className={cx("flex flex-wrap items-center justify-end gap-2", footerClassName)}>
           {closeModal && cancelLabel !== "" ? (
             <Button type="button" variant="ghost" onClick={closeModal}>
               {cancelLabel ?? "Cancel"}
@@ -250,7 +285,7 @@ export function ActionButton({
         disabled={pending}
         title={title ?? label}
         aria-label={label}
-        className={cx("px-2.5 py-1.5 text-xs", className)}
+        className={cx("min-h-8 px-2.5", className)}
         onClick={() => {
           if (confirm && !window.confirm(confirm)) return;
           const fd = new FormData();
@@ -268,7 +303,7 @@ export function ActionButton({
         {icon ? <Icon name={icon} className="h-3.5 w-3.5" /> : null}
         {onlyIcon ? null : pending ? "…" : label}
       </Button>
-      {error ? <span className="mt-1 text-[11px] text-danger">{error}</span> : null}
+      {error ? <span role="alert" className="mt-1 text-xs text-danger">{error}</span> : null}
     </span>
   );
 }
@@ -307,7 +342,7 @@ export function SearchInput({ param = "q", placeholder = "Search…", className 
           if (timer.current) clearTimeout(timer.current);
           timer.current = setTimeout(() => setParam(param, v.trim()), 300);
         }}
-        className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 py-2 pl-9 pr-3 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+        className="min-h-9 w-full rounded-[var(--radius-control)] border border-border-strong bg-surface py-1.5 pl-9 pr-3 text-sm text-text hover:border-text-2 focus:border-brand"
       />
     </div>
   );
@@ -332,7 +367,7 @@ export function ParamSelect({
       value={params.get(param) ?? ""}
       onChange={(e) => setParam(param, e.target.value)}
       className={cx(
-        "rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand focus:outline-none",
+        "min-h-9 rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-1.5 text-sm text-text hover:border-text-2 focus:border-brand",
         className,
       )}
     >
@@ -351,7 +386,7 @@ export function ViewToggle({ param = "view", fallback = "grid" }: { param?: stri
   const setParam = useParamSetter();
   const cur = params.get(param) ?? fallback;
   return (
-    <div className="inline-flex overflow-hidden rounded-[var(--radius-control)] border border-border" role="group" aria-label="View">
+    <div className="inline-flex overflow-hidden rounded-[var(--radius-control)] border border-border-strong" role="group" aria-label="View">
       {(["grid", "table"] as const).map((v) => (
         <button
           key={v}
@@ -359,7 +394,7 @@ export function ViewToggle({ param = "view", fallback = "grid" }: { param?: stri
           aria-pressed={cur === v}
           aria-label={v === "grid" ? "Card view" : "Table view"}
           onClick={() => setParam(param, v === fallback ? "" : v)}
-          className={cx("px-2.5 py-2", cur === v ? "bg-brand/15 text-brand" : "bg-surface-2 text-muted hover:text-text")}
+          className={cx("flex h-9 w-10 items-center justify-center max-md:min-w-11", cur === v ? "bg-surface-2 text-text" : "bg-surface text-muted hover:bg-surface-2 hover:text-text")}
         >
           <Icon name={v === "grid" ? "grid" : "list"} />
         </button>
@@ -388,7 +423,7 @@ export function Collapsible({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-5 py-3 text-left"
+        className="flex min-h-12 w-full items-center justify-between gap-3 rounded-[var(--radius-card)] px-4 py-2.5 text-left sm:px-5"
       >
         <span className="text-sm font-semibold">{title}</span>
         <span className="flex items-center gap-3 text-muted">
@@ -396,7 +431,7 @@ export function Collapsible({
           <Icon name={open ? "chevronDown" : "chevronRight"} />
         </span>
       </button>
-      {open ? <div className="border-t border-border p-5">{children}</div> : null}
+      {open ? <div className="border-t border-border p-4 sm:p-5">{children}</div> : null}
     </section>
   );
 }
@@ -444,7 +479,7 @@ export function RichTextEditor({
     }],
   ];
   return (
-    <div className="rounded-[var(--radius-control)] border border-border bg-surface-2 focus-within:border-brand">
+    <div className="rounded-[var(--radius-control)] border border-border-strong bg-surface focus-within:border-brand">
       <div className="flex flex-wrap gap-0.5 border-b border-border p-1.5">
         {tools.map(([icon, label, fn]) => (
           <button
@@ -454,7 +489,7 @@ export function RichTextEditor({
             aria-label={label}
             onMouseDown={(e) => e.preventDefault()}
             onClick={fn}
-            className="rounded p-1.5 text-muted hover:bg-surface hover:text-text"
+            className="flex h-8 w-8 items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-text max-md:h-11 max-md:w-11"
           >
             <Icon name={icon} />
           </button>
@@ -486,7 +521,6 @@ export function CopyButton({ text, label = "Copy link" }: { text: string; label?
     <Button
       type="button"
       variant="secondary"
-      className="px-3 py-1.5 text-xs"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text);
@@ -517,13 +551,13 @@ export function PanelTabs({ tabs }: { tabs: Array<{ id: string; label: string; b
             type="button"
             onClick={() => setActive(t.id)}
             className={cx(
-              "-mb-px border-b-2 px-3 py-2 text-sm",
-              active === t.id ? "border-brand font-medium text-brand" : "border-transparent text-muted hover:text-text",
+              "-mb-px inline-flex min-h-10 items-center border-b-2 px-3 text-sm max-md:min-h-11",
+              active === t.id ? "border-brand font-medium text-text" : "border-transparent text-muted hover:border-border-strong hover:text-text",
             )}
           >
             {t.label}
             {t.badge !== undefined ? (
-              <span className="ml-1.5 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted">{t.badge}</span>
+              <span className="num ml-1.5 rounded-[var(--radius-badge)] bg-surface-2 px-1.5 py-0.5 text-xs text-muted">{t.badge}</span>
             ) : null}
           </button>
         ))}

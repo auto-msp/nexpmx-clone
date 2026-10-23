@@ -200,7 +200,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
               <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {TASK_STATUSES.map((s) => (
                   <li key={s} className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 px-3 py-2">
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted">
+                    <div className="flex items-center gap-1.5 text-xs text-muted">
                       <span className={cx("h-2 w-2 rounded-full", TASK_STATUS_DOT[s])} />
                       {TASK_STATUS_LABEL[s]}
                     </div>
@@ -238,7 +238,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
               </div>
               {project.contractValueMinor > 0 ? (
                 <div className="mt-3">
-                  <div className="mb-1 text-[11px] text-muted">{Math.min(100, Math.round((billed / project.contractValueMinor) * 100))}% of contract billed</div>
+                  <div className="mb-1 text-xs text-muted">{Math.min(100, Math.round((billed / project.contractValueMinor) * 100))}% of contract billed</div>
                   <ProgressBar value={billed} max={project.contractValueMinor} />
                 </div>
               ) : null}
@@ -297,10 +297,10 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
                 return (
                   <section key={s} className="flex min-h-40 flex-col rounded-[var(--radius-card)] border border-border bg-surface" aria-label={TASK_STATUS_LABEL[s]}>
                     <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
-                      <h2 className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                      <h2 className="flex items-center gap-2 text-xs font-semibold text-muted">
                         <span className={cx("h-2 w-2 rounded-full", TASK_STATUS_DOT[s])} />
                         {TASK_STATUS_LABEL[s]}
-                        <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] normal-case tracking-normal">{col.length}</span>
+                        <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-xs normal-case tracking-normal">{col.length}</span>
                       </h2>
                       {canWrite ? (
                         <ModalButton label={`Add to ${TASK_STATUS_LABEL[s]}`} title={`Add task to ${TASK_STATUS_LABEL[s]}`} icon="plus" variant="ghost" className="px-1.5 py-1 text-xs">
@@ -400,7 +400,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
                       </div>
                     </div>
                     <div className="w-32 shrink-0">
-                      <div className="mb-1 text-[11px] text-muted">{md}/{mt.length} tasks</div>
+                      <div className="mb-1 text-xs text-muted">{md}/{mt.length} tasks</div>
                       <ProgressBar value={md} max={mt.length || 1} tone="success" />
                     </div>
                     {canWrite ? (
@@ -606,7 +606,7 @@ async function DecisionsTab({ orgId, projectId, canWrite }: { orgId: string; pro
                 <Badge>{fmtDate(d.createdAt)}</Badge>
               </div>
               <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-muted">{d.body}</p>
-              <div className="mt-1 text-[11px] text-muted">By {nameOf(d.authorId)}</div>
+              <div className="mt-1 text-xs text-muted">By {nameOf(d.authorId)}</div>
             </li>
           ))}
         </ul>

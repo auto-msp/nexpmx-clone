@@ -128,7 +128,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
                     <div className="h-0.5 bg-brand" aria-hidden />
                     <div className="flex flex-1 flex-col p-5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">{categoryLabel(s.category)}</span>
+                        <span className="text-xs font-semibold text-muted">{categoryLabel(s.category)}</span>
                         {row ? <Badge tone="success">Added</Badge> : null}
                       </div>
                       <h3 className="mt-2 font-semibold">{s.title}</h3>
@@ -189,7 +189,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-center justify-between gap-2">
                     <Pill tone="brand">{scopeText}</Pill>
-                    <span className="font-mono text-[10px] text-muted">v{r.version}</span>
+                    <span className="font-mono text-xs text-muted">v{r.version}</span>
                   </div>
                   <h3 className="mt-2 font-semibold">{r.name}</h3>
                   {r.description ? <p className="mt-1 text-sm text-muted">{r.description}</p> : null}

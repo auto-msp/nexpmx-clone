@@ -30,7 +30,7 @@ function OverlayItem({ item, variant }: { item: CalItem; variant: "chip" | "row"
   const meta = KIND_META[item.kind];
   const body =
     variant === "chip" ? (
-      <span className={cx("flex w-full min-w-0 items-center gap-1 rounded px-1.5 py-0.5 text-[11px] leading-tight hover:brightness-125", meta.chip)}>
+      <span className={cx("flex w-full min-w-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs leading-tight hover:brightness-125", meta.chip)}>
         <span className="truncate">{item.title}</span>
       </span>
     ) : (
@@ -68,7 +68,7 @@ export function MonthView({ data, today, focus, href, clients, canWrite }: ViewP
     <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
       <div className="grid grid-cols-7 border-b border-border bg-surface-2/60">
         {WEEKDAY_SHORT.map((d) => (
-          <div key={d} className="px-1 py-2 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted sm:px-2 sm:text-left">
+          <div key={d} className="px-1 py-2 text-center text-xs font-semibold text-muted sm:px-2 sm:text-left">
             {d}
           </div>
         ))}
@@ -103,7 +103,7 @@ export function MonthView({ data, today, focus, href, clients, canWrite }: ViewP
                   <Item key={it.key} item={it} variant="chip" clients={clients} canWrite={canWrite} />
                 ))}
                 {extra > 0 ? (
-                  <Link href={href("day", key)} className="block px-1.5 text-[11px] text-muted hover:text-brand">
+                  <Link href={href("day", key)} className="block px-1.5 text-xs text-muted hover:text-brand">
                     +{extra} more
                   </Link>
                 ) : null}
@@ -136,7 +136,7 @@ export function WeekView({ data, today, focus, href, clients, canWrite }: ViewPr
         return (
           <section key={key} className={cx("min-h-28 rounded-[var(--radius-card)] border bg-surface p-2.5", isToday ? "border-brand" : "border-border")}>
             <Link href={href("day", key)} className="mb-2 flex items-baseline justify-between gap-2">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{fmtKey(key, { weekday: "short" })}</span>
+              <span className="text-xs font-semibold text-muted">{fmtKey(key, { weekday: "short" })}</span>
               <span className={cx("text-sm font-semibold", isToday && "text-brand")}>{fmtKey(key, { day: "numeric", month: "short" })}</span>
             </Link>
             {items.length === 0 ? (
@@ -145,7 +145,7 @@ export function WeekView({ data, today, focus, href, clients, canWrite }: ViewPr
               <div className="space-y-1">
                 {items.map((it) => (
                   <div key={it.key}>
-                    {it.time && it.event && !it.event.allDay && it.time !== "All day" ? <span className="mb-0.5 block px-1 font-mono text-[10px] text-muted">{it.time}</span> : null}
+                    {it.time && it.event && !it.event.allDay && it.time !== "All day" ? <span className="mb-0.5 block px-1 font-mono text-xs text-muted">{it.time}</span> : null}
                     <Item item={it} variant="chip" clients={clients} canWrite={canWrite} />
                   </div>
                 ))}
@@ -171,7 +171,7 @@ export function DayView({ data, focus, clients, canWrite, newEvent }: ViewProps 
     <div className="space-y-5">
       {timed.length ? (
         <section>
-          <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Schedule</h2>
+          <h2 className="mb-2 text-xs font-semibold text-muted">Schedule</h2>
           <ul className="space-y-2">
             {timed.map((it) => (
               <li key={it.key} className="flex items-start gap-3">
@@ -186,7 +186,7 @@ export function DayView({ data, focus, clients, canWrite, newEvent }: ViewProps 
       ) : null}
       {allDay.length ? (
         <section>
-          <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">All day &amp; due today</h2>
+          <h2 className="mb-2 text-xs font-semibold text-muted">All day &amp; due today</h2>
           <ul className="space-y-2">
             {allDay.map((it) => (
               <li key={it.key}>
@@ -253,7 +253,7 @@ export function YearView({ data, today, focus, href }: ViewProps) {
             </Link>
             <div className="grid grid-cols-7 gap-0.5 text-center">
               {WEEKDAY_SHORT.map((d) => (
-                <span key={d} className="pb-1 font-mono text-[9px] uppercase text-muted">
+                <span key={d} className="pb-1 text-xs text-muted">
                   {d[0]}
                 </span>
               ))}
@@ -266,7 +266,7 @@ export function YearView({ data, today, focus, href }: ViewProps) {
                     href={href("day", key)}
                     aria-label={`${fmtKey(key, { day: "numeric", month: "long" })}${n ? `, ${n} item${n === 1 ? "" : "s"}` : ""}`}
                     className={cx(
-                      "flex h-7 items-center justify-center rounded text-[11px] hover:ring-1 hover:ring-brand",
+                      "flex h-7 items-center justify-center rounded text-xs hover:ring-1 hover:ring-brand",
                       n >= 4 ? "bg-brand/50 font-semibold" : n >= 2 ? "bg-brand/30" : n === 1 ? "bg-brand/15" : "text-muted",
                       key === today && "ring-1 ring-brand",
                     )}

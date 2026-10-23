@@ -145,7 +145,7 @@ export function TeamBoard({
               <Icon name="check" className="h-3.5 w-3.5 text-success" />
               Results wait for your approval
             </p>
-            <p className="mt-1 text-[11px] text-muted/80">
+            <p className="mt-1 text-xs text-muted/80">
               {m.creditPrice > 0 ? `Uses ${m.creditPrice} AI credits a month while on duty` : "Included with your AI credits"}
             </p>
 

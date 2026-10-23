@@ -157,7 +157,7 @@ export default async function MemoryPage() {
                 <ProgressBar value={Math.min(n, 5)} max={5} tone={n >= 5 ? "success" : "brand"} />
               </div>
               <p className="mt-2 flex-1 text-xs text-muted">{a.blurb}</p>
-              <p className={cx("mt-2 text-[11px]", n ? "text-success" : "text-muted/80")}>{n ? `${n} saved` : "nothing yet"}</p>
+              <p className={cx("mt-2 text-xs", n ? "text-success" : "text-muted/80")}>{n ? `${n} saved` : "nothing yet"}</p>
             </Link>
           );
         })}
@@ -181,7 +181,7 @@ export default async function MemoryPage() {
                 </span>
                 <h3 className="mt-3 text-sm font-semibold">{n.title}</h3>
                 <p className="mt-1 flex-1 text-xs text-muted">{n.hint}</p>
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Worth up to {n.part.max - n.part.points} points</p>
+                <p className="mt-2 text-xs text-muted">Worth up to {n.part.max - n.part.points} points</p>
                 <Link href={n.href} className="mt-3 text-sm font-medium text-brand hover:underline">
                   {n.cta} →
                 </Link>

@@ -225,7 +225,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                   </span>
                 }
               >
-                <div className={`hidden border-b border-border px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted ${GRID}`}>
+                <div className={`hidden border-b border-border px-4 py-2 text-xs font-semibold text-muted ${GRID}`}>
                   <span />
                   <span>Task</span>
                   <span>Project</span>

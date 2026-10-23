@@ -61,7 +61,7 @@ function RecipeCard({ r, added, canWrite }: { r: AutomationRecipe; added: boolea
     <article className="flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
       <div className={cx("h-0.5", g.accent)} aria-hidden />
       <div className="flex flex-1 flex-col p-5">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">{g.label}</span>
+        <span className="text-xs font-semibold text-muted">{g.label}</span>
         <h3 className="mt-2 font-semibold">{r.title}</h3>
         <p className="mt-1 text-sm text-muted">{r.description}</p>
         <div className="mt-3 flex-1">
@@ -226,7 +226,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
                     </p>
                   </div>
                   <div className="text-xs text-muted">
-                    <span className="block font-mono text-[10px] uppercase tracking-[0.14em]">Last fired</span>
+                    <span className="block text-xs ">Last fired</span>
                     {a.lastFiredAt ? relTime(a.lastFiredAt) : "Never"}
                   </div>
                   {canWrite ? (

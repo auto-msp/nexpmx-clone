@@ -148,7 +148,7 @@ export default async function AiSettingsPage() {
                   </Select>
                 </Field>
               </FormGrid>
-              <ul className="space-y-0.5 text-[11px] text-muted">
+              <ul className="space-y-0.5 text-xs text-muted">
                 {AI_TONES.map((t) => (
                   <li key={t}>
                     <strong className="text-text">{t.charAt(0).toUpperCase() + t.slice(1)}:</strong> {TONE_HINTS[t]}

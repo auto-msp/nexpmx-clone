@@ -57,13 +57,13 @@ export function TaskCard({
     <article className="rounded-[var(--radius-control)] border border-border bg-surface-2/60 p-3 text-sm">
       <div className="flex items-start justify-between gap-2">
         <h3 className={cx("min-w-0 break-words font-medium", task.status === "DONE" && "text-muted line-through")}>{task.title}</h3>
-        <span className="mt-1.5 flex shrink-0 items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted" title={`${priorityLabel} priority`}>
+        <span className="mt-1.5 flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted" title={`${priorityLabel} priority`}>
           <span className={cx("h-2 w-2 rounded-full", PRIORITY_TONE[task.priority] ?? "bg-muted")} />
           {priorityLabel}
         </span>
       </div>
       {task.description ? <p className="mt-1 line-clamp-2 text-xs text-muted">{task.description}</p> : null}
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
         {task.milestoneName ? (
           <span className="inline-flex items-center gap-1">
             <Icon name="flag" className="h-3 w-3" />
