@@ -108,7 +108,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Se
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/proposals/${p.id}`} className="truncate font-medium hover:text-brand">
+                      <Link href={`/proposals/${p.id}`} className="inline-flex items-center truncate font-medium hover:text-brand">
                         {p.title}
                       </Link>
                       <StatusBadge status={p.status} />

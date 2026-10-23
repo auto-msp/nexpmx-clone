@@ -26,7 +26,7 @@ function Meter({ label, used, cap, unit, hint }: { label: string; used: number; 
         </span>
       </div>
       {unlimited ? <div className="h-1.5 rounded-full bg-surface-2" /> : <ProgressBar value={used} max={cap} tone={tone} />}
-      {hint ? <p className="mt-1 text-[11px] text-muted">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
     </div>
   );
 }
@@ -107,7 +107,7 @@ export default async function PlanUsagePage() {
         </Panel>
 
         <section aria-label="Plans">
-          <h2 className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Compare plans</h2>
+          <h2 className="mb-3 text-xs font-semibold text-muted">Compare plans</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {Object.values(PLANS).map((p) => {
               const current = p.id === plan.id;

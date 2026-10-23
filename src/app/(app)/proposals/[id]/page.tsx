@@ -87,7 +87,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
         <article className="print-doc rounded-[var(--radius-card)] border border-border bg-surface p-6 sm:p-8">
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
             <div>
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Proposal</div>
+              <div className="text-xs font-semibold text-muted">Proposal</div>
               <h2 className="mt-1 text-xl font-semibold tracking-tight">{p.title}</h2>
               {p.summary ? <p className="mt-1 text-sm text-muted">{p.summary}</p> : null}
             </div>
@@ -100,13 +100,13 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
           <section className="grid grid-cols-1 gap-4 border-b border-border py-5 text-sm sm:grid-cols-2">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Prepared for</div>
+              <div className="text-xs text-muted">Prepared for</div>
               <div className="mt-1 font-medium">{p.client?.name ?? "—"}</div>
               {p.client?.company ? <div className="text-muted">{p.client.company}</div> : null}
               {p.client?.email ? <div className="text-muted">{p.client.email}</div> : null}
             </div>
             <div className="sm:text-right">
-              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Investment</div>
+              <div className="text-xs text-muted">Investment</div>
               <div className="mt-1 text-xl font-semibold tabular-nums">{inr(total)}</div>
               <div className="text-muted">{p.advancePct}% advance on acceptance · {inr(advance)}</div>
             </div>
@@ -120,11 +120,11 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
           ) : null}
 
           <section className="pt-5">
-            <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Scope and pricing</div>
+            <div className="mb-2 text-xs text-muted">Scope and pricing</div>
             {items.length === 0 ? (
               <p className="text-sm text-muted">No line items. Total {inr(p.amountMinor)}.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div tabIndex={0} className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-border text-xs text-muted">

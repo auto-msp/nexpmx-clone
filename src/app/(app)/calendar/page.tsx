@@ -71,7 +71,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const newEvent = <NewEventButton defaultDate={newEventDate} clients={clients} />;
   const viewProps = { data, today, focus, href: (v: CalendarView, d: string) => href(v, d), clients, canWrite };
 
-  const navBtn = "inline-flex h-9 items-center justify-center rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 text-sm text-text hover:border-brand";
+  const navBtn = "inline-flex h-9 items-center justify-center rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 text-sm text-text hover:bg-surface-2";
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -104,13 +104,12 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
             <Link
               key={k}
               href={href(view, focus, next)}
-              aria-pressed={!off}
               title={off ? `Show ${meta.plural.toLowerCase()}` : `Hide ${meta.plural.toLowerCase()}`}
-              className={cx("inline-flex items-center gap-1.5 text-xs", off ? "text-muted/60 line-through" : "text-muted hover:text-text")}
+              className={cx("inline-flex items-center gap-1.5 text-xs", off ? "text-muted line-through" : "text-muted hover:text-text")}
             >
               <span aria-hidden className={cx("h-2.5 w-2.5 rounded-full", meta.dot, off && "opacity-40")} />
               {meta.plural}
-              {!off ? <span className="font-mono text-[10px]">{data.counts[k]}</span> : null}
+              {!off ? <span className="font-mono text-xs">{data.counts[k]}</span> : null}
             </Link>
           );
         })}

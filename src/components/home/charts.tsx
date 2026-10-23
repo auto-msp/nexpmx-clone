@@ -50,7 +50,7 @@ export function GroupedBars({
         ))}
       </div>
       <div role="img" aria-label={ariaLabel} className="relative" style={{ height }}>
-        <div className="absolute inset-x-0 top-0 flex items-center gap-2 text-[10px] text-muted">
+        <div className="absolute inset-x-0 top-0 flex items-center gap-2 text-xs text-muted">
           <span className="font-mono">{format(max)}</span>
           <span className="h-px flex-1 border-t border-dashed border-border" />
         </div>
@@ -75,7 +75,7 @@ export function GroupedBars({
       </div>
       <div className="mt-1 flex gap-1">
         {labels.map((label, i) => (
-          <span key={`${label}-${i}`} className="min-w-0 flex-1 truncate text-center text-[10px] text-muted">
+          <span key={`${label}-${i}`} className="min-w-0 flex-1 truncate text-center text-xs text-muted">
             {i % step === 0 ? label : ""}
           </span>
         ))}

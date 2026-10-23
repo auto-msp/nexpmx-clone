@@ -88,7 +88,7 @@ export function ProposalForm({
 
       <div className="flex flex-col gap-2">
         <span className="text-xs font-medium text-muted">Scope and line items</span>
-        <div className="hidden grid-cols-[1fr_5rem_8rem_2rem] gap-2 px-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted sm:grid">
+        <div className="hidden grid-cols-[1fr_5rem_8rem_2rem] gap-2 px-1 text-xs text-muted sm:grid">
           <span>Deliverable</span>
           <span>Qty</span>
           <span>Rate (₹)</span>
@@ -133,7 +133,7 @@ export function ProposalForm({
           <Input name="validUntil" type="date" defaultValue={initial?.validUntil ?? ""} />
         </Field>
         <div className="rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-right">
-          <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Subtotal</div>
+          <div className="text-xs text-muted">Subtotal</div>
           <div className="text-lg font-semibold" aria-live="polite">
             {formatPaise(total)}
           </div>

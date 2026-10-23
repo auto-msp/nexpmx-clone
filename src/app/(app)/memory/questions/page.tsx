@@ -51,7 +51,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
         subtitle="A few questions at a time. Short answers in your own words are enough, and there is always another batch."
       />
 
-      <div className="mb-5 inline-flex rounded-full border border-border bg-surface-2 p-1" role="tablist">
+      <div className="mb-5 inline-flex rounded-[var(--radius-control)] border border-border bg-surface-2 p-0.5" role="tablist">
         {(
           [
             ["open", `To answer (${remaining.length + openQs.length})`],
@@ -63,7 +63,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
             href={href(id, area)}
             role="tab"
             aria-selected={tab === id}
-            className={cx("rounded-full px-4 py-1.5 text-sm font-medium", tab === id ? "bg-brand text-white" : "text-muted hover:text-text")}
+            className={cx("inline-flex min-h-8 items-center rounded-[4px] px-3 text-sm font-medium max-md:min-h-11", tab === id ? "bg-surface text-text shadow-[0_0_0_1px_var(--color-border-strong)]" : "text-muted hover:text-text")}
           >
             {label}
           </Link>
@@ -80,7 +80,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                 aria-current={area === c.id ? "true" : undefined}
                 className={cx(
                   "rounded-full border px-3 py-1 text-xs font-medium",
-                  area === c.id ? "border-brand bg-brand/15 text-brand" : "border-border text-muted hover:text-text",
+                  area === c.id ? "border-brand bg-brand-soft text-brand" : "border-border text-muted hover:text-text",
                 )}
               >
                 {c.label}
@@ -91,7 +91,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
           {current ? (
             <section className="rounded-[var(--radius-card)] border border-border bg-surface p-6" aria-label="Guided question">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">{areaLabel(current.area)}</span>
+                <span className="text-xs font-semibold text-brand">{areaLabel(current.area)}</span>
                 <span className="text-xs text-muted">{position} of {remaining.length}</span>
               </div>
               <h2 className="mt-3 text-lg font-semibold leading-snug">{current.text}</h2>
@@ -131,14 +131,14 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
             ) : (
               <ul className="space-y-5">
                 {openQs.map((q) => (
-                  <li key={q.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-4">
+                  <li key={q.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-sm font-medium">{q.question}</p>
                       {canWrite ? (
                         <ActionButton action={deleteMemoryQuestion} fields={{ id: q.id }} label="Remove question" icon="trash" variant="ghost" onlyIcon confirm="Remove this question?" />
                       ) : null}
                     </div>
-                    <p className="mt-0.5 text-[11px] text-muted">Asked {relTime(q.createdAt)}</p>
+                    <p className="mt-0.5 text-xs text-muted">Asked {relTime(q.createdAt)}</p>
                     {canWrite ? (
                       <ActionForm action={answerMemoryQuestion} submitLabel="Save answer" className="mt-3">
                         <input type="hidden" name="id" value={q.id} />
@@ -170,7 +170,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
           ) : null}
         </div>
       ) : answeredCount === 0 ? (
-        <EmptyPanel icon="help" title="Nothing answered yet" hint="Answers you give are saved to your memory and show up here." action={<Link href="/memory/questions" className="text-sm font-medium text-brand hover:underline">Start answering</Link>} />
+        <EmptyPanel icon="help" title="Nothing answered yet" hint="Answers you give are saved to your memory and show up here." action={<Link href="/memory/questions" className="inline-flex items-center text-sm font-medium text-brand hover:underline">Start answering</Link>} />
       ) : (
         <div className="space-y-6">
           {answeredQs.length ? (
@@ -180,14 +180,14 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                   <li key={q.id}>
                     <p className="text-sm font-medium">{q.question}</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{q.answer}</p>
-                    <p className="mt-1 text-[11px] text-muted/80">Answered {relTime(q.updatedAt)}</p>
+                    <p className="mt-1 text-xs text-muted">Answered {relTime(q.updatedAt)}</p>
                   </li>
                 ))}
               </ul>
             </Panel>
           ) : null}
           {guidedFacts.filter((f) => f.status === "ACTIVE").length ? (
-            <Panel title="Guided questions" action={<Link href="/memory/what-we-know" className="text-xs text-brand hover:underline">Edit in notes</Link>}>
+            <Panel title="Guided questions" action={<Link href="/memory/what-we-know" className="inline-flex items-center text-xs text-brand hover:underline">Edit in notes</Link>}>
               <ul className="space-y-4">
                 {guidedFacts
                   .filter((f) => f.status === "ACTIVE")
@@ -200,7 +200,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                           <Badge tone="neutral">{areaLabel(f.category)}</Badge>
                         </div>
                         <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{d.value}</p>
-                        <p className="mt-1 text-[11px] text-muted/80">Answered {relTime(f.updatedAt)}</p>
+                        <p className="mt-1 text-xs text-muted">Answered {relTime(f.updatedAt)}</p>
                       </li>
                     );
                   })}

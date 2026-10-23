@@ -28,9 +28,9 @@ export type CommsRow = {
 };
 
 const channelTone: Record<string, string> = {
-  EMAIL: "bg-brand/15 text-brand",
-  CALL: "bg-warn/15 text-warn",
-  MEETING: "bg-success/15 text-success",
+  EMAIL: "bg-brand-soft text-brand",
+  CALL: "bg-warn-soft text-warn",
+  MEETING: "bg-success-soft text-success",
   NOTE: "bg-surface-2 text-muted",
 };
 
@@ -80,7 +80,7 @@ export function CommsBubble({ m, canWrite }: { m: CommsRow; canWrite: boolean })
       <div
         className={cx(
           "max-w-[85%] rounded-[var(--radius-card)] border p-3 sm:max-w-[70%]",
-          out ? "border-brand/40 bg-brand/10" : "border-border bg-surface",
+          out ? "border-brand/40 bg-brand-soft" : "border-border bg-surface",
         )}
       >
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted">

@@ -48,7 +48,7 @@ export default async function GuidePage() {
                   <span className="text-muted">{s.action}</span>
                   <span className="flex shrink-0 gap-1">
                     {s.keys.map((k) => (
-                      <kbd key={k} className="rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px]">
+                      <kbd key={k} className="rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-xs">
                         {k}
                       </kbd>
                     ))}

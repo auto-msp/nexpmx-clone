@@ -145,7 +145,7 @@ export function TeamBoard({
               <Icon name="check" className="h-3.5 w-3.5 text-success" />
               Results wait for your approval
             </p>
-            <p className="mt-1 text-[11px] text-muted/80">
+            <p className="mt-1 text-xs text-muted">
               {m.creditPrice > 0 ? `Uses ${m.creditPrice} AI credits a month while on duty` : "Included with your AI credits"}
             </p>
 
@@ -176,7 +176,7 @@ export function TeamBoard({
       </div>
 
       {current ? (
-        <div ref={panelRef} className="mt-5 rounded-[var(--radius-card)] border border-brand/50 bg-surface p-5">
+        <div ref={panelRef} className="mt-5 rounded-[var(--radius-card)] border border-brand bg-surface p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">
               Assign a task to {current.name} <span className="font-normal text-muted">· {current.role}</span>

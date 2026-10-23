@@ -113,7 +113,7 @@ export default async function ClientDetailPage({ params, searchParams }: Props) 
           <span className="flex min-w-0 items-center gap-3">
             <span
               aria-hidden
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-brand/15 text-sm font-semibold text-brand"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-brand-soft text-sm font-semibold text-brand"
             >
               {initialsOf(client.name)}
             </span>
@@ -224,7 +224,7 @@ export default async function ClientDetailPage({ params, searchParams }: Props) 
                 <DetailRow label="Pincode">{client.pincode ?? "—"}</DetailRow>
               </div>
               {!client.gstin || !client.billingAddress ? (
-                <p className="mt-3 rounded-[var(--radius-control)] bg-warn/10 px-3 py-2 text-xs text-warn">
+                <p className="mt-3 rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-xs text-warn">
                   GSTIN or billing address is missing, so invoices to this client will be incomplete. Edit the client to add them.
                 </p>
               ) : null}
@@ -278,7 +278,7 @@ export default async function ClientDetailPage({ params, searchParams }: Props) 
           ) : (
             <Table head={["Invoice", "Status", "Amount (incl. GST)", "Issued", "Due"]}>
               {invoices.map((i) => (
-                <tr key={i.id} className="hover:bg-surface-2/40">
+                <tr key={i.id} className="hover:bg-surface-2">
                   <td className="px-4 py-3"><Link href={`/invoices/${i.id}`} className="font-medium hover:text-brand">{i.number}</Link></td>
                   <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                   <td className="px-4 py-3">{inr(invoiceGrossMinor(i))}</td>
@@ -348,7 +348,7 @@ async function ProjectsTab({ orgId, clientId, canWrite }: { orgId: string; clien
                   </div>
                 </div>
                 <div className="w-32 shrink-0">
-                  <div className="mb-1 text-[11px] text-muted">{t.done}/{t.all} tasks</div>
+                  <div className="mb-1 text-xs text-muted">{t.done}/{t.all} tasks</div>
                   <ProgressBar value={t.done} max={t.all || 1} tone="success" />
                 </div>
                 <HealthBadge health={p.health} />
@@ -373,7 +373,7 @@ async function ProposalsTab({ orgId, clientId }: { orgId: string; clientId: stri
       ) : (
         <Table head={["Proposal", "Status", "Value", "Sent", "Valid until"]}>
           {proposals.map((p) => (
-            <tr key={p.id} className="hover:bg-surface-2/40">
+            <tr key={p.id} className="hover:bg-surface-2">
               <td className="px-4 py-3"><Link href={`/proposals/${p.id}`} className="font-medium hover:text-brand">{p.title}</Link></td>
               <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
               <td className="px-4 py-3">{inr(p.amountMinor)}</td>
@@ -430,7 +430,7 @@ async function CommsTab({ orgId, clientId }: { orgId: string; clientId: string }
             <li key={m.id} className="px-5 py-3">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={m.direction === "IN" ? "brand" : "neutral"}>{m.direction === "IN" ? "Received" : "Sent"}</Badge>
-                <span className="text-xs uppercase tracking-wide text-muted">{m.channel}</span>
+                <span className="text-xs text-muted">{m.channel}</span>
                 <span className="ml-auto text-xs text-muted">{fmtDateTime(m.sentAt)}</span>
               </div>
               <div className="mt-1 text-sm font-medium">{m.subject}</div>
@@ -551,8 +551,8 @@ async function ActivityTab({ orgId, clientId, canComment }: { orgId: string; cli
                       <span className="font-medium">{e.who}</span>{" "}
                       {e.kind === "comment" ? <span className="text-muted">commented</span> : <span className="text-muted">{e.text}</span>}
                     </div>
-                    {e.kind === "comment" ? <p className="mt-1 whitespace-pre-line rounded-[var(--radius-control)] bg-surface-2/60 px-3 py-2 text-sm">{e.text}</p> : null}
-                    <div className="mt-0.5 text-[11px] text-muted">{fmtDateTime(e.at)}</div>
+                    {e.kind === "comment" ? <p className="mt-1 whitespace-pre-line rounded-[var(--radius-control)] bg-surface-2 px-3 py-2 text-sm">{e.text}</p> : null}
+                    <div className="mt-0.5 text-xs text-muted">{fmtDateTime(e.at)}</div>
                   </div>
                 </li>
               ))}

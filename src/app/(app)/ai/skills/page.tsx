@@ -77,7 +77,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-full border border-border bg-surface-2 p-1" role="tablist">
+        <div className="inline-flex rounded-[var(--radius-control)] border border-border bg-surface-2 p-0.5" role="tablist">
           {(
             [
               ["ready", `Ready-made (${READY_SKILLS.length})`],
@@ -89,7 +89,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
               href={href(id, id === "ready" ? cat : "", q)}
               role="tab"
               aria-selected={tab === id}
-              className={cx("rounded-full px-4 py-1.5 text-sm font-medium", tab === id ? "bg-brand text-white" : "text-muted hover:text-text")}
+              className={cx("inline-flex min-h-8 items-center rounded-[4px] px-3 text-sm font-medium max-md:min-h-11", tab === id ? "bg-surface text-text shadow-[0_0_0_1px_var(--color-border-strong)]" : "text-muted hover:text-text")}
             >
               {label}
             </Link>
@@ -108,7 +108,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
                 aria-current={cat === c.id ? "true" : undefined}
                 className={cx(
                   "rounded-full border px-3 py-1 text-xs font-medium",
-                  cat === c.id ? "border-brand bg-brand/15 text-brand" : "border-border text-muted hover:text-text",
+                  cat === c.id ? "border-brand bg-brand-soft text-brand" : "border-border text-muted hover:text-text",
                 )}
               >
                 {c.label}
@@ -125,10 +125,9 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
                 const assigned = row ? parseKeys(row.assignedJson) : s.taughtTo;
                 return (
                   <article key={s.id} className="flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-                    <div className="h-0.5 bg-brand" aria-hidden />
                     <div className="flex flex-1 flex-col p-5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">{categoryLabel(s.category)}</span>
+                        <span className="text-xs font-semibold text-muted">{categoryLabel(s.category)}</span>
                         {row ? <Badge tone="success">Added</Badge> : null}
                       </div>
                       <h3 className="mt-2 font-semibold">{s.title}</h3>
@@ -144,7 +143,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
                         <div className="mt-4">
                           <ModalButton
                             label={row ? "Change who learns it" : "+ Add to my AI team"}
-                            variant={row ? "secondary" : "primary"}
+                            variant="secondary"
                             className="w-full"
                             title={s.title}
                             description="Choose the teammates who should follow this."
@@ -185,11 +184,10 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
               r.scope === "CLIENT" ? `Client: ${clientName.get(r.scopeId ?? "") ?? "removed"}` : r.scope === "PROJECT" ? `Project: ${projectName.get(r.scopeId ?? "") ?? "removed"}` : "Everything";
             return (
               <article key={r.id} className="flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-                <div className="h-0.5 bg-brand" aria-hidden />
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-center justify-between gap-2">
                     <Pill tone="brand">{scopeText}</Pill>
-                    <span className="font-mono text-[10px] text-muted">v{r.version}</span>
+                    <span className="font-mono text-xs text-muted">v{r.version}</span>
                   </div>
                   <h3 className="mt-2 font-semibold">{r.name}</h3>
                   {r.description ? <p className="mt-1 text-sm text-muted">{r.description}</p> : null}

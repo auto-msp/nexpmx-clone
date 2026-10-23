@@ -92,7 +92,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 {r.clients.slice(0, 6).map((c, i) => (
                   <li key={c.id}>
                     <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-                      <Link href={`/clients/${c.id}`} className="min-w-0 truncate hover:text-brand">
+                      <Link href={`/clients/${c.id}`} className="inline-flex min-w-0 items-center truncate hover:text-brand">
                         <span className="mr-2 font-mono text-xs text-muted">{i + 1}</span>
                         {c.name}
                       </Link>
@@ -117,7 +117,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 <tr key={p.id}>
                   <td className="px-4 py-2.5 font-mono text-xs text-muted">{i + 1}</td>
                   <td className="px-4 py-2.5 font-medium">
-                    <Link href={`/projects/${p.id}`} className="hover:text-brand">
+                    <Link href={`/projects/${p.id}`} className="inline-flex items-center hover:text-brand">
                       {p.name}
                     </Link>
                   </td>

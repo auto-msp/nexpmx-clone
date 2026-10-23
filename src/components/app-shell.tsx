@@ -18,7 +18,7 @@ export function UserMenu({ userName }: { userName: string }) {
       <form action={signOutAction}>
         <button
           type="submit"
-          className="rounded-[var(--radius-control)] border border-border px-3 py-1.5 text-sm text-muted hover:border-brand hover:text-text"
+          className="min-h-9 rounded-[var(--radius-control)] border border-border-strong px-3 py-1.5 text-sm text-text-2 hover:bg-surface-2 hover:text-text"
         >
           Sign out
         </button>
@@ -52,25 +52,25 @@ export function TrialBanner({
       role="status"
       className={
         urgent
-          ? "flex items-center justify-center gap-3 border-b border-warn/30 bg-warn/10 px-4 py-2 text-sm text-warn sm:px-6"
-          : "flex items-center justify-center gap-3 border-b border-brand/25 bg-brand/10 px-4 py-2 text-sm text-brand sm:px-6"
+          ? "flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-warn/40 bg-warn-soft px-4 py-2 text-sm text-warn sm:px-6 lg:px-8"
+          : "flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border bg-surface px-4 py-2 text-sm text-text-2 sm:px-6 lg:px-8"
       }
     >
-      <span>
+      <span className="min-w-0 flex-1">
         {days !== null
           ? `Trial: ${days} ${days === 1 ? "day" : "days"} left. Your data stays safe whichever plan you pick.`
           : "Trial active. Your data stays safe whichever plan you pick."}
       </span>
       <a
         href="/settings/plan"
-        className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-white hover:bg-brand-strong"
+        className="inline-flex min-h-8 items-center rounded-[var(--radius-control)] bg-brand px-3 text-sm font-medium text-on-brand hover:bg-brand-strong max-md:min-h-11"
       >
         Choose a plan →
       </a>
       <button
         type="button"
         aria-label="Dismiss"
-        className="rounded p-1 opacity-70 hover:opacity-100"
+        className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-muted hover:bg-surface-2 hover:text-text max-md:min-w-11"
         onClick={() => {
           setHidden(true);
           try {
@@ -94,9 +94,9 @@ export function TrialBanner({
 export function TrialGate({ plan }: { plan: string }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="rounded-[var(--radius-card)] border border-border bg-surface p-8 text-center">
-        <h1 className="text-xl font-semibold tracking-tight">Your trial has ended</h1>
-        <p className="mt-3 text-sm text-muted">
+      <div className="rounded-[var(--radius-card)] border border-border bg-surface p-6 sm:p-8">
+        <h1 className="text-2xl">Your trial has ended</h1>
+        <p className="mt-3 max-w-prose text-sm text-muted">
           Your 14-day trial of the {plan} plan is over. Your clients, projects,
           documents and decisions are safe and waiting — choose a plan to reopen
           your workspace.
@@ -105,25 +105,25 @@ export function TrialGate({ plan }: { plan: string }) {
           {Object.values(PLANS).map((p) => (
             <div
               key={p.id}
-              className="rounded-[var(--radius-control)] border border-border p-4 text-left"
+              className="rounded-[var(--radius-control)] border border-border p-4"
             >
               <div className="text-sm font-medium">{p.name}</div>
-              <div className="mt-1 text-lg font-semibold">
+              <div className="num mt-1 text-lg font-semibold">
                 {formatInr(p.pricePerUserMinor)}
                 <span className="text-xs font-normal text-muted"> / user / mo</span>
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-8 flex flex-col items-center gap-3">
+        <div className="mt-8 flex flex-col items-start gap-3">
           <a
             href="/billing"
-            className="rounded-[var(--radius-control)] bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-strong"
+            className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] bg-brand px-5 text-sm font-medium text-on-brand hover:bg-brand-strong sm:min-h-10"
           >
             Choose a plan &amp; reactivate
           </a>
           <p className="text-sm text-muted">
-            or see the <a href="/pricing" className="text-brand hover:underline">pricing page</a> for details.
+            or see the <a href="/pricing" className="text-brand underline underline-offset-2 hover:text-brand-strong">pricing page</a> for details.
           </p>
         </div>
       </div>

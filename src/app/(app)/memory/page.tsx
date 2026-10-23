@@ -157,13 +157,13 @@ export default async function MemoryPage() {
                 <ProgressBar value={Math.min(n, 5)} max={5} tone={n >= 5 ? "success" : "brand"} />
               </div>
               <p className="mt-2 flex-1 text-xs text-muted">{a.blurb}</p>
-              <p className={cx("mt-2 text-[11px]", n ? "text-success" : "text-muted/80")}>{n ? `${n} saved` : "nothing yet"}</p>
+              <p className={cx("mt-2 text-xs", n ? "text-success" : "text-muted")}>{n ? `${n} saved` : "nothing yet"}</p>
             </Link>
           );
         })}
       </div>
 
-      <section className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] border border-brand/40 bg-brand/10 p-5">
+      <section className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] border border-brand/40 bg-brand-soft p-5">
         <p className="text-sm">
           We know least about <strong>{weakest.label.toLowerCase()}</strong>. That is what the next questions are about.
         </p>
@@ -176,13 +176,13 @@ export default async function MemoryPage() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {next.map((n) => (
               <div key={n.part.id} className="flex flex-col rounded-[var(--radius-card)] border border-border bg-surface p-4">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/15 text-brand">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-brand">
                   <Icon name={n.icon} />
                 </span>
                 <h3 className="mt-3 text-sm font-semibold">{n.title}</h3>
                 <p className="mt-1 flex-1 text-xs text-muted">{n.hint}</p>
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Worth up to {n.part.max - n.part.points} points</p>
-                <Link href={n.href} className="mt-3 text-sm font-medium text-brand hover:underline">
+                <p className="mt-2 text-xs text-muted">Worth up to {n.part.max - n.part.points} points</p>
+                <Link href={n.href} className="mt-3 inline-flex items-center text-sm font-medium text-brand hover:underline">
                   {n.cta} →
                 </Link>
               </div>

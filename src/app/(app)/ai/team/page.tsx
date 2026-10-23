@@ -108,7 +108,7 @@ export default async function AiTeamPage() {
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-[var(--radius-card)] border border-border bg-surface p-4 sm:col-span-2">
           <div className="mb-2 flex items-baseline justify-between gap-3">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">AI credits this cycle</span>
+            <span className="text-xs font-semibold text-muted">AI credits this cycle</span>
             <span className="text-sm font-semibold">
               {used.toLocaleString("en-IN")} <span className="font-normal text-muted">of {plan.aiCreditsPerMonth.toLocaleString("en-IN")}</span>
             </span>
@@ -119,7 +119,7 @@ export default async function AiTeamPage() {
           </p>
         </div>
         <div className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">On duty</span>
+          <span className="text-xs font-semibold text-muted">On duty</span>
           <p className="mt-1 text-2xl font-semibold tracking-tight">
             {onDuty} <span className="text-sm font-normal text-muted">of {team.length}</span>
           </p>
@@ -154,7 +154,7 @@ export default async function AiTeamPage() {
               {pending.map((a) => {
                 const m = parseMeta(a.metaJson);
                 return (
-                  <li key={a.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-4">
+                  <li key={a.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-medium">
                         {m.employeeName ?? "AI teammate"} <span className="font-normal text-muted">· {m.role}</span>

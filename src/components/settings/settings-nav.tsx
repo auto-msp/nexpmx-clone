@@ -48,7 +48,7 @@ export function SettingsNav() {
     >
       {GROUPS.map((g) => (
         <div key={g.label} className="flex shrink-0 gap-1 lg:flex-col">
-          <div className="hidden px-3 pb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted lg:block">{g.label}</div>
+          <div className="hidden px-3 pb-1 text-xs font-semibold text-muted lg:block">{g.label}</div>
           {g.items.map((it) => {
             const active = isActive(it.href);
             return (
@@ -57,8 +57,8 @@ export function SettingsNav() {
                 href={it.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "flex items-center gap-3 whitespace-nowrap rounded-[var(--radius-control)] border px-3 py-2 lg:items-start lg:whitespace-normal",
-                  active ? "border-brand/50 bg-brand/10 text-text" : "border-transparent text-muted hover:bg-surface-2 hover:text-text",
+                  "flex min-h-11 items-center gap-3 whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 lg:items-start lg:whitespace-normal",
+                  active ? "bg-surface-2 text-text shadow-[inset_2px_0_0_var(--color-brand)]" : "text-text-2 hover:bg-surface-2 hover:text-text",
                 )}
               >
                 <Icon name={it.icon} className={cx("h-4 w-4 shrink-0 lg:mt-0.5", active ? "text-brand" : "")} />

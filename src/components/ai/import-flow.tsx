@@ -122,7 +122,7 @@ export function ImportFlow({ importAction, canWrite }: { importAction: Act; canW
           <input type="hidden" name="payload" value={JSON.stringify(chosen.map(({ category, factKey, value }) => ({ category, factKey, value })))} />
           <ul className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
             {rows.map((r) => (
-              <li key={r.id} className={cx("rounded-[var(--radius-control)] border border-border p-3", r.include ? "bg-surface-2/50" : "opacity-50")}>
+              <li key={r.id} className={cx("rounded-[var(--radius-control)] border border-border p-3", r.include ? "bg-surface-2" : "opacity-50")}>
                 <div className="flex flex-wrap items-center gap-2">
                   <label className="inline-flex items-center gap-2 text-xs text-muted">
                     <input type="checkbox" checked={r.include} onChange={(e) => patch(r.id, { include: e.target.checked })} className="h-4 w-4 accent-brand" />
@@ -152,7 +152,7 @@ export function ImportFlow({ importAction, canWrite }: { importAction: Act; canW
 
       <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
         <h2 className="text-base font-semibold">Paste from another assistant</h2>
-        <div className="mt-3 inline-flex rounded-full border border-border bg-surface-2 p-1" role="tablist">
+        <div className="mt-3 inline-flex rounded-[var(--radius-control)] border border-border bg-surface-2 p-0.5" role="tablist">
           {SOURCES.map((s) => (
             <button
               key={s.id}
@@ -160,14 +160,14 @@ export function ImportFlow({ importAction, canWrite }: { importAction: Act; canW
               role="tab"
               aria-selected={source === s.id}
               onClick={() => setSource(s.id)}
-              className={cx("rounded-full px-3 py-1 text-xs font-medium", source === s.id ? "bg-brand text-white" : "text-muted hover:text-text")}
+              className={cx("inline-flex min-h-8 items-center rounded-[4px] px-3 text-sm font-medium max-md:min-h-11", source === s.id ? "bg-surface text-text shadow-[0_0_0_1px_var(--color-border-strong)]" : "text-muted hover:text-text")}
             >
               {s.label}
             </button>
           ))}
         </div>
-        <div className="mt-4 rounded-[var(--radius-control)] border border-border bg-surface-2/60 p-4">
-          <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Where to find it</h3>
+        <div className="mt-4 rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
+          <h3 className="text-xs font-semibold text-muted">Where to find it</h3>
           <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted">
             {active.steps.map((s) => (
               <li key={s}>{s}</li>
@@ -212,7 +212,7 @@ export function ImportFlow({ importAction, canWrite }: { importAction: Act; canW
       </section>
 
       {error ? (
-        <p role="alert" className="rounded-[var(--radius-control)] border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-[var(--radius-control)] border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
           {error}
         </p>
       ) : null}

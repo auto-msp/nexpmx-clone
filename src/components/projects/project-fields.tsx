@@ -100,7 +100,7 @@ export function ProjectFields({
           <Input name="deadline" type="date" defaultValue={dateInput(p.deadline ?? null)} />
         </Field>
       </FormGrid>
-      <label className="flex items-start gap-3 rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-3">
+      <label className="flex items-start gap-3 rounded-[var(--radius-control)] border border-border bg-surface-2 p-3">
         <input type="checkbox" name="hideClient" defaultChecked={p.hideClient ?? false} className="mt-0.5 h-4 w-4 accent-[var(--color-brand)]" />
         <span className="text-sm">
           <span className="font-medium">Hide the client in the client portal</span>

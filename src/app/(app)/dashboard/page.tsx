@@ -247,7 +247,7 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Hero */}
       <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:p-6">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-brand">
+        <div className="text-xs font-semibold text-brand">
           {fmtKey(today, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -301,11 +301,11 @@ export default async function DashboardPage() {
               <ul className="divide-y divide-border">
                 {attention.map((a) => (
                   <li key={a.key}>
-                    <Link href={a.href} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-2/50">
+                    <Link href={a.href} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-2">
                       <span
                         className={cx(
                           "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                          a.tone === "danger" ? "bg-danger/15 text-danger" : a.tone === "warn" ? "bg-warn/15 text-warn" : a.tone === "brand" ? "bg-brand/15 text-brand" : "bg-surface-2 text-muted",
+                          a.tone === "danger" ? "bg-danger-soft text-danger" : a.tone === "warn" ? "bg-warn-soft text-warn" : a.tone === "brand" ? "bg-brand-soft text-brand" : "bg-surface-2 text-muted",
                         )}
                       >
                         <Icon name={a.icon} className="h-4 w-4" />
@@ -329,7 +329,7 @@ export default async function DashboardPage() {
           <Panel
             title="Invoiced vs collected · last 6 months"
             action={
-              <Link href="/reports?period=12m" className="text-xs text-brand hover:underline">
+              <Link href="/reports?period=12m" className="inline-flex items-center text-xs text-brand hover:underline">
                 Full report →
               </Link>
             }
@@ -352,7 +352,7 @@ export default async function DashboardPage() {
           <Panel
             title="Project health"
             action={
-              <Link href="/projects" className="text-xs text-brand hover:underline">
+              <Link href="/projects" className="inline-flex items-center text-xs text-brand hover:underline">
                 All projects →
               </Link>
             }
@@ -376,7 +376,7 @@ export default async function DashboardPage() {
                         <span className="block truncate text-xs text-muted">{p.client?.name ?? "Internal"}</span>
                       </div>
                       <div>
-                        <div className="mb-1 flex justify-between text-[11px] text-muted">
+                        <div className="mb-1 flex justify-between text-xs text-muted">
                           <span>
                             {done}/{total} tasks
                           </span>
@@ -403,7 +403,7 @@ export default async function DashboardPage() {
           <Panel
             title="Team workload"
             action={
-              <Link href="/reports" className="text-xs text-brand hover:underline">
+              <Link href="/reports" className="inline-flex items-center text-xs text-brand hover:underline">
                 Details →
               </Link>
             }
@@ -434,7 +434,7 @@ export default async function DashboardPage() {
           <Panel
             title="Recent decisions"
             action={
-              <Link href="/decisions" className="text-xs text-brand hover:underline">
+              <Link href="/decisions" className="inline-flex items-center text-xs text-brand hover:underline">
                 All →
               </Link>
             }
@@ -459,7 +459,7 @@ export default async function DashboardPage() {
           <Panel
             title="AI team"
             action={
-              <Link href="/ai/team" className="text-xs text-brand hover:underline">
+              <Link href="/ai/team" className="inline-flex items-center text-xs text-brand hover:underline">
                 Manage →
               </Link>
             }
@@ -481,7 +481,7 @@ export default async function DashboardPage() {
               })}
             </ul>
             <div className="mt-4">
-              <div className="mb-1 flex justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+              <div className="mb-1 flex justify-between text-xs text-muted">
                 <span>AI credits</span>
                 <span>
                   {creditsUsed}/{plan.aiCreditsPerMonth}

@@ -213,14 +213,14 @@ export default async function CioPage() {
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/15 text-brand"><Icon name="chart" /></span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand"><Icon name="chart" /></span>
           <div>
             <p className="text-xs text-muted">Active projects</p>
             <p className="text-lg font-semibold">{activeProjects}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/15 text-brand"><Icon name="wallet" /></span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand"><Icon name="wallet" /></span>
           <div>
             <p className="text-xs text-muted">Total receivables</p>
             <p className="text-lg font-semibold">{inr(outstanding)}</p>
@@ -245,7 +245,7 @@ export default async function CioPage() {
               minLength={3}
               maxLength={300}
               placeholder="e.g. Who owes us money and how much?"
-              className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+              className="w-full rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-2 text-sm text-text focus:border-brand"
             />
           </label>
           <Button type="submit">
@@ -359,9 +359,9 @@ export default async function CioPage() {
           )}
         </Panel>
 
-        <Panel title="Recent decisions" action={<Link href="/decisions" className="text-xs text-brand hover:underline">Open log</Link>}>
+        <Panel title="Recent decisions" action={<Link href="/decisions" className="inline-flex items-center text-xs text-brand hover:underline">Open log</Link>}>
           {recentDecisions.length === 0 ? (
-            <EmptyPanel icon="file" title="No decisions logged yet" hint="Write down what was decided and why, so it is easy to find later." action={<Link href="/decisions" className="text-sm text-brand hover:underline">Log a decision</Link>} />
+            <EmptyPanel icon="file" title="No decisions logged yet" hint="Write down what was decided and why, so it is easy to find later." action={<Link href="/decisions" className="inline-flex items-center text-sm text-brand hover:underline">Log a decision</Link>} />
           ) : (
             <ul className="space-y-2">
               {recentDecisions.map((d) => (

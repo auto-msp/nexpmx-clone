@@ -96,9 +96,9 @@ export default async function SheetsPage({ searchParams }: { searchParams: Promi
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {rows.map((s) => (
-                <div key={s.id} className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-brand/60">
+                <div key={s.id} className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-brand">
                   <Link href={`/sheets/${s.id}`} className="flex items-start gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-success/15 text-success">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-success-soft text-success">
                       <Icon name="grid" className="h-5 w-5" />
                     </span>
                     <span className="min-w-0">

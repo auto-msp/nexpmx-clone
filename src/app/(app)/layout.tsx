@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { getOrgContext } from "@/lib/tenancy";
 import { planOf } from "@/lib/plans";
 import { getOrCreateSubscription, subscriptionView } from "@/lib/subscription";
-import { IconRail, ModuleSubnav, TopBar, AiFab, CommandPalette } from "@/components/app-rail";
+import { IconRail, ModuleSubnav, MobileNav, TopBar, CommandPalette } from "@/components/app-rail";
 import { TrialBanner, TrialGate } from "@/components/app-shell";
 import { AI_EMPLOYEES } from "@/lib/ai-team";
 import { getSubnavData } from "@/lib/subnav";
@@ -35,18 +35,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const userName = session.user.name ?? session.user.email ?? "Account";
   const userImage = session.user.image ?? null;
 
+  const navProps = {
+    orgName: org?.name ?? "Workspace",
+    userName,
+    userRole: ctx.role,
+    userImage,
+    credits: { used: org?.aiCreditsUsed ?? 0, limit: plan.aiCreditsPerMonth, teamNames },
+    dynamic: subnav.data,
+  };
   const rail = (
     <>
       <IconRail />
-      <ModuleSubnav
-        orgName={org?.name ?? "Workspace"}
-        userName={userName}
-        userRole={ctx.role}
-        userImage={userImage}
-        credits={{ used: org?.aiCreditsUsed ?? 0, limit: plan.aiCreditsPerMonth, teamNames }}
-        dynamic={subnav.data}
-      />
+      <ModuleSubnav {...navProps} />
     </>
+  );
+  const mobileNav = <MobileNav {...navProps} />;
+  const skipLink = (
+    <a
+      href="#main"
+      className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-[var(--radius-control)] focus:bg-brand focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-on-brand"
+    >
+      Skip to content
+    </a>
   );
 
   // Trial expiry gate: expired orgs see the plan chooser, not app routes
@@ -55,10 +65,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!view.entitled) {
     return (
       <div className="flex min-h-dvh">
+        {skipLink}
         {rail}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar userName={userName} userImage={userImage} unread={0} />
-          <main className="flex-1 px-4 py-6 sm:px-6">
+          <TopBar userName={userName} userImage={userImage} unread={0} mobileNav={mobileNav} />
+          <main id="main" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
             <TrialGate plan={plan.name} />
           </main>
         </div>
@@ -68,17 +79,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-dvh">
+      {skipLink}
       {rail}
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar userName={userName} userImage={userImage} unread={subnav.unread} />
+        <TopBar userName={userName} userImage={userImage} unread={subnav.unread} mobileNav={mobileNav} showAi />
         <TrialBanner view={view} />
-        <main className="flex-1 px-4 py-6 sm:px-6">{children}</main>
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 text-xs text-muted sm:px-6">
-          <span className="font-medium text-text">BizMemory</span>
+        <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border px-4 py-3 text-xs text-muted sm:px-6 lg:px-8">
+          <span className="font-medium text-text-2">BizMemory</span>
           <span>One connected memory for your whole business.</span>
         </footer>
       </div>
-      <AiFab />
       <CommandPalette />
     </div>
   );

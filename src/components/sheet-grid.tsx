@@ -119,7 +119,7 @@ export function SheetGrid({
 
   const toolBtn = (on: boolean) =>
     `rounded px-2 py-1 text-xs ${
-      on ? "bg-brand/25 text-brand" : "text-muted hover:bg-surface-2 hover:text-text"
+      on ? "bg-brand-soft text-brand" : "text-muted hover:bg-surface-2 hover:text-text"
     }`;
 
   return (
@@ -142,7 +142,7 @@ export function SheetGrid({
             type="button"
             onClick={save}
             disabled={saving}
-            className="rounded-[var(--radius-control)] bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-strong disabled:opacity-50"
+            className="rounded-[var(--radius-control)] bg-brand px-3 py-1.5 text-xs font-medium text-on-brand hover:bg-brand-strong disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save"}
           </button>
@@ -211,7 +211,7 @@ export function SheetGrid({
           }}
           placeholder="Enter value or formula… (=SUM(A1:A10))"
           aria-label={`Value for cell ${active}`}
-          className="flex-1 rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-1.5 font-mono text-xs text-text placeholder:text-muted/60 focus:border-brand focus:outline-none"
+          className="flex-1 rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-1.5 font-mono text-xs text-text focus:border-brand"
         />
         <span className="hidden w-32 truncate text-right font-mono text-xs text-muted sm:block" title="Computed value">
           {activeDisplay}
@@ -219,15 +219,15 @@ export function SheetGrid({
       </div>
 
       {/* Grid */}
-      <div ref={gridRef} className="max-h-[60vh] overflow-auto">
+      <div ref={gridRef} tabIndex={0} className="max-h-[60vh] overflow-auto">
         <table className="w-full border-collapse text-xs">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>
-              <th className="w-10 border-b border-r border-border bg-surface-2/60 px-1 py-1 text-[10px] font-normal text-muted" />
+              <th className="w-10 border-b border-r border-border bg-surface-2 px-1 py-1 text-xs font-normal text-muted" />
               {Array.from({ length: GRID_COLS }, (_, c) => (
                 <th
                   key={c}
-                  className="border-b border-r border-border bg-surface-2/60 px-1 py-1 text-[10px] font-medium text-muted"
+                  className="border-b border-r border-border bg-surface-2 px-1 py-1 text-xs font-medium text-muted"
                 >
                   {colLetter(c)}
                 </th>
@@ -237,7 +237,7 @@ export function SheetGrid({
           <tbody>
             {Array.from({ length: usedRows }, (_, r) => (
               <tr key={r}>
-                <td className="border-b border-r border-border bg-surface-2/60 px-1 py-0.5 text-center text-[10px] text-muted">
+                <td className="border-b border-r border-border bg-surface-2 px-1 py-0.5 text-center text-xs text-muted">
                   {r + 1}
                 </td>
                 {Array.from({ length: GRID_COLS }, (_, c) => {
@@ -285,7 +285,7 @@ export function SheetGrid({
                             }
                             if (e.key === "Escape") setEditing(null);
                           }}
-                          className="w-full bg-transparent font-mono text-xs text-text focus:outline-none"
+                          className="w-full bg-transparent font-mono text-xs text-text"
                         />
                       ) : (
                         <span className="block truncate font-mono text-text">{computed}</span>

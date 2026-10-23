@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ButtonLink, Card } from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
 import { PLANS, formatInr } from "@/lib/plans";
 
 export const metadata: Metadata = {
@@ -44,10 +44,10 @@ export default function HomePage() {
   return (
     <>
       <section className="mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6 sm:pt-28">
-        <p className="text-sm font-medium uppercase tracking-widest text-brand">
+        <p className="text-sm font-medium text-brand">
           Business Memory Platform
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-3 max-w-3xl text-4xl sm:text-5xl">
           Your business remembers more than your software does.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted">
@@ -64,53 +64,53 @@ export default function HomePage() {
 
       <section aria-labelledby="pillars" className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
         <h2 id="pillars" className="sr-only">Memory, Intelligence, Action</h2>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid divide-y divide-border border-y border-border md:grid-cols-3 md:divide-x md:divide-y-0">
           {PILLARS.map((p) => (
-            <Card key={p.id}>
-              <span className="text-xs font-semibold text-brand">{p.id}</span>
-              <h3 className="mt-2 text-lg font-semibold">{p.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{p.body}</p>
-            </Card>
+            <div key={p.id} className="py-6 md:px-6 md:first:pl-0 md:last:pr-0">
+              <span className="font-mono text-sm text-brand">{p.id}</span>
+              <h3 className="mt-2 text-xl font-semibold">{p.title}</h3>
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted">{p.body}</p>
+            </div>
           ))}
         </div>
       </section>
 
       <section aria-labelledby="modules" className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-        <h2 id="modules" className="text-2xl font-semibold tracking-tight">
+        <h2 id="modules" className="text-2xl font-semibold">
           One system, nine modules
         </h2>
         <p className="mt-2 max-w-2xl text-muted">
           Everything writes to the same memory — so nothing lives in five apps
           and nobody asks “what’s the latest version?” again.
         </p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((m) => (
-            <Card key={m.name} className="transition-colors hover:border-brand/50">
+            <li key={m.name} className="border-t border-border py-4">
               <h3 className="font-medium">{m.name}</h3>
               <p className="mt-1 text-sm text-muted">{m.desc}</p>
-            </Card>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
-      <section aria-labelledby="home-pricing" className="border-t border-border bg-surface/40">
+      <section aria-labelledby="home-pricing" className="border-t border-border bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 id="home-pricing" className="text-2xl font-semibold tracking-tight">
+          <h2 id="home-pricing" className="text-2xl font-semibold">
             Simple, transparent pricing
           </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid divide-y divide-border border-y border-border md:grid-cols-3 md:divide-x md:divide-y-0">
             {planList.map((p) => (
-              <Card key={p.id}>
+              <div key={p.id} className="py-6 md:px-6 md:first:pl-0 md:last:pr-0">
                 <h3 className="font-semibold">{p.name}</h3>
-                <p className="mt-1 text-2xl font-semibold">
+                <p className="num mt-1 text-2xl font-semibold">
                   {formatInr(p.pricePerUserMinor)}
                   <span className="text-sm font-normal text-muted"> / user / mo</span>
                 </p>
                 <p className="mt-2 text-sm text-muted">{p.blurb}</p>
-                <Link href="/pricing" className="mt-4 inline-block text-sm text-brand hover:underline">
+                <Link href="/pricing" className="mt-3 inline-flex min-h-11 items-center text-sm text-brand underline-offset-2 hover:underline">
                   See plan details →
                 </Link>
-              </Card>
+              </div>
             ))}
           </div>
         </div>

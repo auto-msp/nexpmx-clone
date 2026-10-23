@@ -111,7 +111,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
             icon="search"
             title="No projects match these filters"
             hint="Adjust the search or filters to see more."
-            action={<Link href="/projects" className="text-sm text-brand hover:underline">Clear filters</Link>}
+            action={<Link href="/projects" className="inline-flex items-center text-sm text-brand hover:underline">Clear filters</Link>}
           />
         ) : (
           <EmptyPanel
@@ -127,7 +127,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
             const t = progress.get(p.id) ?? { done: 0, all: 0 };
             const dl = deadlineInfo(p.deadline, p.status);
             return (
-              <tr key={p.id} className="hover:bg-surface-2/40">
+              <tr key={p.id} className="hover:bg-surface-2">
                 <td className="px-4 py-3">
                   <Link href={`/projects/${p.id}`} className="font-medium hover:text-brand">{p.name}</Link>
                   <div className="text-xs text-muted">{projectTypeLabel(p.projectType)}</div>
@@ -137,13 +137,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
                 <td className="px-4 py-3"><HealthBadge health={p.health} /></td>
                 <td className="px-4 py-3">
                   <div className="w-28">
-                    <div className="mb-1 text-[11px] text-muted">{t.done}/{t.all} tasks</div>
+                    <div className="mb-1 text-xs text-muted">{t.done}/{t.all} tasks</div>
                     <ProgressBar value={t.done} max={t.all || 1} tone="success" />
                   </div>
                 </td>
                 <td className={cx("px-4 py-3", DEADLINE_TEXT[dl.tone])}>
                   {p.deadline ? fmtDate(p.deadline) : "—"}
-                  <div className="text-[11px]">{dl.text}</div>
+                  <div className="text-xs">{dl.text}</div>
                 </td>
                 <td className="px-4 py-3">{p.contractValueMinor ? inr(p.contractValueMinor) : "—"}</td>
               </tr>

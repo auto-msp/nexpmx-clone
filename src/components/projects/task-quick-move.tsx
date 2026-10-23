@@ -39,7 +39,7 @@ export function TaskQuickMove({
   };
 
   const sel =
-    "w-full min-w-0 rounded border border-border bg-surface px-1.5 py-1 text-[11px] text-text focus:border-brand focus:outline-none disabled:opacity-60";
+    "w-full min-w-0 rounded border border-border bg-surface px-1.5 py-1 text-xs text-text focus:border-brand disabled:opacity-60";
   return (
     <div className="mt-1.5 grid grid-cols-2 gap-1">
       <select aria-label="Status" className={sel} value={status} disabled={pending} onChange={(e) => run({ status: e.target.value })}>
@@ -59,7 +59,7 @@ export function TaskQuickMove({
           <option key={m.id} value={m.id}>{m.name}</option>
         ))}
       </select>
-      {error ? <span className="col-span-2 text-[11px] text-danger">{error}</span> : null}
+      {error ? <span className="col-span-2 text-xs text-danger">{error}</span> : null}
     </div>
   );
 }

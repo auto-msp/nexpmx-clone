@@ -134,7 +134,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
       aria-current={active ? "page" : undefined}
       className={cx(
         "flex items-center justify-between gap-2 rounded-[var(--radius-control)] px-2.5 py-1.5 text-sm",
-        active ? "bg-brand/15 font-medium text-brand" : "text-muted hover:bg-surface-2 hover:text-text",
+        active ? "bg-brand-soft font-medium text-brand" : "text-muted hover:bg-surface-2 hover:text-text",
       )}
     >
       <span className="flex min-w-0 items-center gap-2">
@@ -225,7 +225,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             ) : (
               <div className="space-y-6">
                 <section>
-                  <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Folders</h2>
+                  <h2 className="mb-2 text-xs font-semibold text-muted">Folders</h2>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {activeClients.map((c) => (
                       <FolderTile key={c.id} to={href({ folder: `client:${c.id}` })} icon="building" name={c.name} count={clientCount.get(c.id) ?? 0} />
@@ -235,7 +235,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 </section>
                 {projects.length > 0 ? (
                   <section>
-                    <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Project folders</h2>
+                    <h2 className="mb-2 text-xs font-semibold text-muted">Project folders</h2>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {projects.map((p) => (
                         <FolderTile key={p.id} to={href({ folder: `project:${p.id}` })} icon="tasks" name={p.name} count={projectCount.get(p.id) ?? 0} />
@@ -346,7 +346,7 @@ function FolderTile({ to, icon, name, count, dashed }: { to: string; icon: strin
         dashed ? "border-dashed border-border" : "border-border",
       )}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-brand/15 text-brand">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-brand-soft text-brand">
         <Icon name={icon} className="h-5 w-5" />
       </span>
       <span className="min-w-0">

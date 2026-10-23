@@ -59,9 +59,8 @@ function RecipeCard({ r, added, canWrite }: { r: AutomationRecipe; added: boolea
   const g = GROUP_META[r.group];
   return (
     <article className="flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-      <div className={cx("h-0.5", g.accent)} aria-hidden />
       <div className="flex flex-1 flex-col p-5">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">{g.label}</span>
+        <span className="text-xs font-semibold text-muted">{g.label}</span>
         <h3 className="mt-2 font-semibold">{r.title}</h3>
         <p className="mt-1 text-sm text-muted">{r.description}</p>
         <div className="mt-3 flex-1">
@@ -125,7 +124,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
       />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-full border border-border bg-surface-2 p-1" role="tablist">
+        <div className="inline-flex rounded-[var(--radius-control)] border border-border bg-surface-2 p-0.5" role="tablist">
           {(
             [
               ["ready", `Ready to use (${AUTOMATION_RECIPES.length})`],
@@ -137,7 +136,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
               href={tabHref(id)}
               role="tab"
               aria-selected={tab === id}
-              className={cx("rounded-full px-4 py-1.5 text-sm font-medium", tab === id ? "bg-brand text-white" : "text-muted hover:text-text")}
+              className={cx("inline-flex min-h-8 items-center rounded-[4px] px-3 text-sm font-medium max-md:min-h-11", tab === id ? "bg-surface text-text shadow-[0_0_0_1px_var(--color-border-strong)]" : "text-muted hover:text-text")}
             >
               {label}
             </Link>
@@ -160,7 +159,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
                 aria-current={group === c.id ? "true" : undefined}
                 className={cx(
                   "rounded-full border px-3 py-1 text-xs font-medium",
-                  group === c.id ? "border-brand bg-brand/15 text-brand" : "border-border text-muted hover:text-text",
+                  group === c.id ? "border-brand bg-brand-soft text-brand" : "border-border text-muted hover:text-text",
                 )}
               >
                 {c.label}
@@ -194,7 +193,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
           title="No automations yet"
           hint="Pick a ready-made recipe, or build your own rule from scratch."
           action={
-            <Link href="/ai/automations" className="text-sm font-medium text-brand hover:underline">
+            <Link href="/ai/automations" className="inline-flex items-center text-sm font-medium text-brand hover:underline">
               Browse ready-made recipes
             </Link>
           }
@@ -226,7 +225,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
                     </p>
                   </div>
                   <div className="text-xs text-muted">
-                    <span className="block font-mono text-[10px] uppercase tracking-[0.14em]">Last fired</span>
+                    <span className="block text-xs ">Last fired</span>
                     {a.lastFiredAt ? relTime(a.lastFiredAt) : "Never"}
                   </div>
                   {canWrite ? (

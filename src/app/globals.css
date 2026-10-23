@@ -1,76 +1,288 @@
 @import "tailwindcss";
 
 /*
- * Design tokens (DESIGN_SYSTEM.md).
- * Semantic tokens first; component styles consume tokens, never raw hex.
+ * BizMemory design tokens — see docs/design-system.md for the rationale and
+ * the measured contrast ratios behind every pair below.
+ *
+ * Rules:
+ *   - Components consume semantic tokens (bg-surface, text-muted, border-border),
+ *     never raw hex.
+ *   - One accent (verdigris). Status colours carry meaning only: success / warn /
+ *     danger / info are never decorative.
+ *   - Dark is the default theme; light overrides the same names under
+ *     :root[data-theme="light"] (toggled by the shell, persisted client-side).
  */
 @theme {
-  --color-bg: #0a0d16;
-  --color-surface: #111626;
-  --color-surface-2: #172033;
-  --color-border: #232c42;
-  --color-text: #e8ecf5;
-  --color-muted: #8f9bb3;
-  --color-brand: #3b82f6;
-  --color-brand-strong: #2563eb;
-  --color-brand-soft: #1e3a8a;
-  --color-success: #34d399;
-  --color-warn: #fbbf24;
-  --color-danger: #f87171;
+  /* ── Colour: dark ("ink") ─────────────────────────────────────────────── */
+  --color-bg: #0f1312;
+  --color-surface: #161c1b;
+  --color-surface-2: #1e2625;
+  --color-border: #2c3634; /* hairlines, dividers (decorative) */
+  --color-border-strong: #667673; /* control boundaries — 3:1 on every surface */
+  --color-text: #e8eeec;
+  --color-text-2: #c3cdca;
+  --color-muted: #98a5a2;
+  --color-brand: #4cc7aa;
+  --color-brand-strong: #6fd8bf; /* hover */
+  --color-on-brand: #05201a; /* text on a brand fill */
+  --color-success: #4ade9b;
+  --color-warn: #f0b34a;
+  --color-danger: #f48a80;
+  --color-info: #78b4ee;
 
-  --radius-card: 14px;
-  --radius-control: 10px;
+  /* Tinted fills for badges / notices; computed so they follow the theme. */
+  --color-brand-soft: color-mix(in srgb, var(--color-brand) 14%, var(--color-surface));
+  --color-success-soft: color-mix(in srgb, var(--color-success) 14%, var(--color-surface));
+  --color-warn-soft: color-mix(in srgb, var(--color-warn) 14%, var(--color-surface));
+  --color-danger-soft: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface));
+  --color-info-soft: color-mix(in srgb, var(--color-info) 14%, var(--color-surface));
 
+  /* ── Type ─────────────────────────────────────────────────────────────── */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display:
+    var(--font-source-serif), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-mono:
+    var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Scale: 12 / 14 / 16 / 18 / 22 / 28 / 36. Nothing below 12px. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.125rem;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 2.5rem;
+
+  /* ── Shape ────────────────────────────────────────────────────────────── */
+  --radius-control: 6px; /* buttons, inputs, selects, menu rows */
+  --radius-card: 8px; /* panels, tables, modals */
+  --radius-badge: 4px;
+
+  /* ── Elevation: flat by default; only floating layers get a shadow ────── */
+  --shadow-pop: 0 6px 20px rgb(0 0 0 / 0.28), 0 0 0 1px var(--color-border);
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.4), 0 0 0 1px var(--color-border);
+
+  /* ── Motion ───────────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
 }
 
-/* Light theme: same tokens, overridden. Toggled by data-theme on <html>. */
+/* Light ("paper"): same names, new values. */
 :root[data-theme="light"] {
-  --color-bg: #f5f7fb;
+  --color-bg: #f6f5f1;
   --color-surface: #ffffff;
-  --color-surface-2: #eef2f8;
-  --color-border: #dbe2ee;
-  --color-text: #0f172a;
-  --color-muted: #5b6785;
-  --color-brand: #2563eb;
-  --color-brand-strong: #1d4ed8;
-  --color-brand-soft: #dbeafe;
-  --color-success: #059669;
-  --color-warn: #b45309;
-  --color-danger: #dc2626;
+  --color-surface-2: #efeee8;
+  --color-border: #dedcd3;
+  --color-border-strong: #7d8682;
+  --color-text: #17201e;
+  --color-text-2: #3d4846;
+  --color-muted: #5c6764;
+  --color-brand: #0b6b5b;
+  --color-brand-strong: #07554a;
+  --color-on-brand: #ffffff;
+  --color-success: #14704a;
+  --color-warn: #93560a;
+  --color-danger: #b42318;
+  --color-info: #1f5f99;
+
+  --shadow-pop: 0 6px 20px rgb(23 32 30 / 0.12), 0 0 0 1px var(--color-border);
+  --shadow-modal: 0 16px 48px rgb(23 32 30 / 0.18), 0 0 0 1px var(--color-border);
 }
-:root[data-theme="light"] html, html[data-theme="light"] { color-scheme: light; }
 
 html {
   color-scheme: dark;
 }
-
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
-::selection {
-  background: var(--color-brand);
-  color: white;
+@layer base {
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Page titles carry the editorial voice; everything else stays sans. */
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  /* Numbers line up in every table and figure column. */
+  table,
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+  }
+
+  /* Links inside running text are underlined (not distinguished by colour alone). */
+  a.text-brand:not(.inline-flex):not(.block):not(.flex):not(.inline-block) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Keyboard focus: always visible, never colour-only (2px + offset). */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Native controls share one boundary colour (3:1) and one chevron. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    border-color: var(--color-border-strong);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%237d8682' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.625rem center;
+    padding-right: 2rem;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-brand);
+  }
+  button,
+  [role="button"],
+  select,
+  summary {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
-*:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
-  border-radius: 4px;
+/*
+ * Touch: every control reaches 44px (WCAG 2.5.8 target; iOS / Android HIG).
+ * Deliberately unlayered so it outranks component utilities such as min-h-9.
+ * Opt a dense widget out with data-compact (spreadsheet cells, whiteboard tools).
+ */
+@media (max-width: 767px), (pointer: coarse) {
+  button:not([data-compact]),
+  [role="button"]:not([data-compact]),
+  [role="tab"],
+  summary,
+  select:not([data-compact]),
+  textarea:not([data-compact]),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([data-compact]),
+  a.block:not([data-compact]),
+  a.flex:not([data-compact]),
+  a.inline-flex:not([data-compact]),
+  a.inline-block:not([data-compact]) {
+    min-height: 44px;
+  }
+  a.inline-flex:not([data-compact]),
+  a.inline-block:not([data-compact]) {
+    min-width: 44px;
+  }
+  button:has(> svg:only-child):not([data-compact]),
+  [role="button"]:has(> svg:only-child):not([data-compact]) {
+    min-width: 44px;
+  }
+  input:not([data-compact]),
+  select:not([data-compact]),
+  textarea:not([data-compact]) {
+    font-size: 16px; /* stops iOS zooming into focused fields */
+  }
+}
+
+/* ── Components that need more than utilities ───────────────────────────── */
+
+/* Loading state: label stays put, a small ring replaces nothing (no layout shift). */
+button[aria-busy="true"]::before {
+  content: "";
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  animation: bm-spin 0.7s linear infinite;
+}
+@keyframes bm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Data tables: row hover, hairline rows, first column pinned when scrolled sideways. */
+.data-table tbody tr {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.data-table tbody tr:hover {
+  background: var(--color-surface-2);
+}
+.data-table td {
+  vertical-align: middle;
+}
+@media (max-width: 767px) {
+  .data-table th:first-child,
+  .data-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-surface);
+    box-shadow: 1px 0 0 var(--color-border);
+  }
+  .data-table th:first-child {
+    z-index: 11;
+    background: var(--color-surface-2);
+  }
+  .data-table tbody tr:hover td:first-child {
+    background: var(--color-surface-2);
+  }
+  .data-table td,
+  .data-table th {
+    white-space: nowrap;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
@@ -78,8 +290,8 @@ body {
 /* Rich-text editor content (proposals, notes) */
 .rte { min-height: 10rem; }
 .rte:focus { outline: none; }
-.rte h1 { font-size: 1.4rem; font-weight: 600; margin: .6em 0 .3em; }
-.rte h2 { font-size: 1.15rem; font-weight: 600; margin: .6em 0 .3em; }
+.rte h1 { font-size: var(--text-xl); font-weight: 600; margin: .6em 0 .3em; }
+.rte h2 { font-size: var(--text-lg); font-weight: 600; margin: .6em 0 .3em; }
 .rte ul { list-style: disc; padding-left: 1.4rem; }
 .rte ol { list-style: decimal; padding-left: 1.4rem; }
 .rte a { color: var(--color-brand); text-decoration: underline; }

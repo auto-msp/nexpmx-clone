@@ -91,7 +91,7 @@ export default async function CommsPage({ searchParams }: { searchParams: Promis
       aria-current={active ? "page" : undefined}
       className={cx(
         "flex items-center justify-between gap-2 rounded-[var(--radius-control)] px-2.5 py-1.5 text-sm",
-        active ? "bg-brand/15 font-medium text-brand" : "text-muted hover:bg-surface-2 hover:text-text",
+        active ? "bg-brand-soft font-medium text-brand" : "text-muted hover:bg-surface-2 hover:text-text",
       )}
     >
       <span className="flex min-w-0 items-center gap-2">

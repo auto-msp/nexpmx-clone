@@ -103,10 +103,10 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
         <EmptyPanel icon="clock" title="No events match" hint={filtered ? "Try clearing a filter." : "Changes made in the workspace will appear here."} />
       ) : (
         <Panel flush>
-          <div className="overflow-x-auto">
+          <div tabIndex={0} className="data-table overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-surface-2/60 text-xs uppercase tracking-wider text-muted">
+                <tr className="border-b border-border bg-surface-2 text-xs text-muted">
                   <th className="px-4 py-3 font-medium">When</th>
                   <th className="px-4 py-3 font-medium">Who</th>
                   <th className="px-4 py-3 font-medium">Action</th>
@@ -126,7 +126,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                     <td className="px-4 py-2.5">
                       <div className="flex max-w-72 flex-wrap gap-1">
                         {metaChips(l.metaJson).map(([k, v]) => (
-                          <span key={k} className="max-w-full truncate rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-muted" title={`${k}: ${v}`}>
+                          <span key={k} className="max-w-full truncate rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted" title={`${k}: ${v}`}>
                             {k}: {v}
                           </span>
                         ))}
