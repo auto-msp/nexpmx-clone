@@ -124,7 +124,7 @@ export default async function FinancePage() {
       <Panel title="Invoice pipeline" className="mb-6">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {pipeline.map((s, i) => (
-            <div key={s.label} className="relative rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
+            <div key={s.label} className="relative pt-3">
               <span className={`absolute inset-x-0 top-0 h-0.5 rounded-t ${s.bar}`} aria-hidden />
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted">{s.label}</span>
@@ -174,7 +174,7 @@ export default async function FinancePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Panel title="Recent invoices" flush action={<Link href="/invoices" className="text-xs text-brand hover:underline">View all</Link>}>
+        <Panel title="Recent invoices" flush action={<Link href="/invoices" className="inline-flex items-center text-xs text-brand hover:underline">View all</Link>}>
           {recentInvoices.length === 0 ? (
             <div className="p-5">
               <EmptyPanel icon="receipt" title="No invoices yet" hint="Create your first invoice to start tracking collections." action={canWrite ? <ButtonLink href="/invoices/new">New invoice</ButtonLink> : undefined} />
@@ -199,7 +199,7 @@ export default async function FinancePage() {
           )}
         </Panel>
 
-        <Panel title="Recent expenses" flush action={<Link href="/expenses" className="text-xs text-brand hover:underline">View all</Link>}>
+        <Panel title="Recent expenses" flush action={<Link href="/expenses" className="inline-flex items-center text-xs text-brand hover:underline">View all</Link>}>
           {recentExpenses.length === 0 ? (
             <div className="p-5">
               <EmptyPanel icon="wallet" title="No expenses logged" hint="Log spend as it happens to keep your net figure honest." />

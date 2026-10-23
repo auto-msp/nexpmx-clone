@@ -3,7 +3,7 @@ import { cx } from "@/components/ui";
 
 // Same look as the shared form controls, but className MERGES instead of replacing.
 const base =
-  "w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand";
+  "w-full rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-2 text-sm text-text focus:border-brand";
 
 export function Input({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cx(base, className)} {...p} />;
@@ -33,7 +33,7 @@ export function EmployeeChips({
           key={e.key}
           className={cx(
             "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface-2 px-3 py-1 text-xs text-muted transition-colors hover:text-text",
-            "has-[:checked]:border-brand has-[:checked]:bg-brand/15 has-[:checked]:text-brand",
+            "has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-brand",
             "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50",
           )}
         >

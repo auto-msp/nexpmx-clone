@@ -86,7 +86,7 @@ export default async function BillingPage({
         ) : (
           <div
             role="status"
-            className="mt-6 rounded-[var(--radius-card)] border border-warn/40 bg-warn/10 p-5 text-sm"
+            className="mt-6 rounded-[var(--radius-card)] border border-warn/40 bg-warn-soft p-5 text-sm"
           >
             Your 14-day trial has ended. Choose a plan below to reopen your
             workspace — clients, projects, documents and decisions are waiting.
@@ -96,7 +96,7 @@ export default async function BillingPage({
         {status === "verified" ? (
           <div
             role="status"
-            className="mt-6 rounded-[var(--radius-card)] border border-brand/40 bg-brand/10 p-4 text-sm"
+            className="mt-6 rounded-[var(--radius-card)] border border-brand/40 bg-brand-soft p-4 text-sm"
           >
             Payment received — activation completes automatically within
             moments. Reload this page to see your new plan.
@@ -105,7 +105,7 @@ export default async function BillingPage({
         {status === "activated" ? (
           <div
             role="status"
-            className="mt-6 rounded-[var(--radius-card)] border border-brand/40 bg-brand/10 p-4 text-sm"
+            className="mt-6 rounded-[var(--radius-card)] border border-brand/40 bg-brand-soft p-4 text-sm"
           >
             Plan activated. Your workspace is open.
           </div>

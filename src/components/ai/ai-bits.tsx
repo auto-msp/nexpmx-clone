@@ -35,6 +35,7 @@ export function SwitchAction({
   return (
     <span className="inline-flex flex-col items-end">
       <button
+        data-compact
         type="button"
         role="switch"
         aria-checked={on}
@@ -55,13 +56,13 @@ export function SwitchAction({
           });
         }}
         className={cx(
-          "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-          on ? "border-brand bg-brand" : "border-border bg-surface-2",
+          "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors after:absolute after:-inset-2.5 after:content-[''] disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-2",
+          on ? "border-brand bg-brand" : "border-border-strong bg-surface-2",
         )}
       >
         <span
           aria-hidden
-          className={cx("absolute h-3.5 w-3.5 rounded-full bg-white shadow transition-all", on ? "left-[18px]" : "left-0.5")}
+          className={cx("absolute h-4 w-4 rounded-full transition-all", on ? "left-[22px] bg-on-brand" : "left-1 bg-muted")}
         />
       </button>
       {error ? <span className="mt-1 max-w-[16rem] text-right text-xs text-danger">{error}</span> : null}
@@ -92,7 +93,7 @@ export function WideActionButton({
     <div className="w-full">
       <Button
         type="button"
-        variant={done ? "secondary" : "primary"}
+        variant="secondary"
         className="w-full"
         disabled={pending || done || disabled}
         onClick={() => {
@@ -147,16 +148,16 @@ export function ScopePicker({
 }) {
   const [scope, setScope] = useState(defaultScope);
   const select =
-    "w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand";
+    "w-full rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-2 text-sm text-text focus:border-brand";
   return (
     <div className="flex flex-col gap-2">
-      <div role="radiogroup" className="inline-flex w-full flex-wrap gap-1 rounded-full border border-border bg-surface-2 p-1 sm:w-auto sm:self-start">
+      <div role="radiogroup" className="inline-flex w-full flex-wrap gap-1 rounded-[var(--radius-control)] border border-border bg-surface-2 p-0.5 sm:w-auto sm:self-start">
         {(["ALL", "CLIENT", "PROJECT"] as const).map((s) => (
           <label
             key={s}
             className={cx(
-              "cursor-pointer rounded-full px-3 py-1 text-xs font-medium",
-              scope === s ? "bg-brand text-white" : "text-muted hover:text-text",
+              "cursor-pointer inline-flex min-h-8 items-center rounded-[4px] px-3 text-sm font-medium max-md:min-h-11",
+              scope === s ? "bg-surface text-text shadow-[0_0_0_1px_var(--color-border-strong)]" : "text-muted hover:text-text",
             )}
           >
             <input type="radio" name={scopeName} value={s} checked={scope === s} onChange={() => setScope(s)} className="sr-only" />

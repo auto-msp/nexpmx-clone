@@ -176,7 +176,7 @@ export function TeamBoard({
       </div>
 
       {current ? (
-        <div ref={panelRef} className="mt-5 rounded-[var(--radius-card)] border border-brand/50 bg-surface p-5">
+        <div ref={panelRef} className="mt-5 rounded-[var(--radius-card)] border border-brand bg-surface p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">
               Assign a task to {current.name} <span className="font-normal text-muted">· {current.role}</span>

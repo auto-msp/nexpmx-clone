@@ -154,7 +154,7 @@ export default async function AiTeamPage() {
               {pending.map((a) => {
                 const m = parseMeta(a.metaJson);
                 return (
-                  <li key={a.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-4">
+                  <li key={a.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-medium">
                         {m.employeeName ?? "AI teammate"} <span className="font-normal text-muted">· {m.role}</span>

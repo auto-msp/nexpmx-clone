@@ -66,7 +66,7 @@ export function MonthView({ data, today, focus, href, clients, canWrite }: ViewP
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-      <div className="grid grid-cols-7 border-b border-border bg-surface-2/60">
+      <div className="grid grid-cols-7 border-b border-border bg-surface-2">
         {WEEKDAY_SHORT.map((d) => (
           <div key={d} className="px-1 py-2 text-center text-xs font-semibold text-muted sm:px-2 sm:text-left">
             {d}
@@ -85,15 +85,16 @@ export function MonthView({ data, today, focus, href, clients, canWrite }: ViewP
               className={cx(
                 "min-h-[4.25rem] border-b border-border p-1 sm:min-h-[7.5rem] sm:p-1.5",
                 i % 7 !== 6 && "border-r",
-                outside && "bg-surface-2/40",
+                outside && "bg-surface-2",
               )}
             >
               <Link
                 href={href("day", key)}
                 aria-label={fmtKey(key, { weekday: "long", day: "numeric", month: "long" })}
+                data-compact
                 className={cx(
-                  "mb-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs",
-                  isToday ? "bg-brand font-semibold text-white" : outside ? "text-muted/60 hover:text-text" : "text-text hover:bg-surface-2",
+                  "relative mb-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs after:absolute after:-inset-2.5 after:content-['']",
+                  isToday ? "bg-brand font-semibold text-on-brand" : outside ? "text-muted/60 hover:text-text" : "text-text hover:bg-surface-2",
                 )}
               >
                 {Number(key.slice(8, 10))}
@@ -267,7 +268,7 @@ export function YearView({ data, today, focus, href }: ViewProps) {
                     aria-label={`${fmtKey(key, { day: "numeric", month: "long" })}${n ? `, ${n} item${n === 1 ? "" : "s"}` : ""}`}
                     className={cx(
                       "flex h-7 items-center justify-center rounded text-xs hover:ring-1 hover:ring-brand",
-                      n >= 4 ? "bg-brand/50 font-semibold" : n >= 2 ? "bg-brand/30" : n === 1 ? "bg-brand/15" : "text-muted",
+                      n >= 4 ? "bg-brand/50 font-semibold" : n >= 2 ? "bg-brand/30" : n === 1 ? "bg-brand-soft" : "text-muted",
                       key === today && "ring-1 ring-brand",
                     )}
                   >

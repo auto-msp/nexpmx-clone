@@ -41,7 +41,7 @@ export function AutomationFields({
               key={e.name}
               className={cx(
                 "inline-flex cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-muted",
-                "has-[:checked]:border-brand has-[:checked]:bg-brand/15 has-[:checked]:text-text",
+                "has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-text",
               )}
             >
               <input type="checkbox" name={e.name} className="h-4 w-4 accent-brand" />

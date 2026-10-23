@@ -181,22 +181,39 @@ html[data-theme="light"] {
   [aria-disabled="true"] {
     cursor: not-allowed;
   }
+}
 
-  /* Touch: every control reaches 44px (WCAG 2.5.8 target, iOS/Android HIG). */
-  @media (max-width: 767px), (pointer: coarse) {
-    button:not([data-compact]),
-    [role="button"]:not([data-compact]),
-    [role="tab"],
-    select,
-    textarea,
-    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
-      min-height: 44px;
-    }
-    input,
-    select,
-    textarea {
-      font-size: 16px; /* stops iOS zooming into focused fields */
-    }
+/*
+ * Touch: every control reaches 44px (WCAG 2.5.8 target; iOS / Android HIG).
+ * Deliberately unlayered so it outranks component utilities such as min-h-9.
+ * Opt a dense widget out with data-compact (spreadsheet cells, whiteboard tools).
+ */
+@media (max-width: 767px), (pointer: coarse) {
+  button:not([data-compact]),
+  [role="button"]:not([data-compact]),
+  [role="tab"],
+  summary,
+  select:not([data-compact]),
+  textarea:not([data-compact]),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([data-compact]),
+  a.block:not([data-compact]),
+  a.flex:not([data-compact]),
+  a.inline-flex:not([data-compact]),
+  a.inline-block:not([data-compact]) {
+    min-height: 44px;
+  }
+  a.inline-flex:not([data-compact]),
+  a.inline-block:not([data-compact]) {
+    min-width: 44px;
+  }
+  button:has(> svg:only-child):not([data-compact]),
+  [role="button"]:has(> svg:only-child):not([data-compact]) {
+    min-width: 44px;
+  }
+  input:not([data-compact]),
+  select:not([data-compact]),
+  textarea:not([data-compact]) {
+    font-size: 16px; /* stops iOS zooming into focused fields */
   }
 }
 

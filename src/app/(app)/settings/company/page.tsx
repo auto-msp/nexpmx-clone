@@ -64,7 +64,7 @@ export default async function CompanyPage() {
               </Field>
             </FormGrid>
           </fieldset>
-          <div className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-3 text-xs text-muted">
+          <div className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-3 text-xs text-muted">
             <p>
               <strong className="text-text">State</strong> decides CGST + SGST versus IGST on invoices (within the state or across states).{" "}
               <strong className="text-text">UPI ID</strong> adds a &ldquo;Pay via UPI&rdquo; link to portal invoices. GSTIN is format-checked (15 characters).

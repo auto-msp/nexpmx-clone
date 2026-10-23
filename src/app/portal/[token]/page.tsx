@@ -175,7 +175,7 @@ export default async function ClientPortalPage({
                       {payLink ? (
                         <a
                           href={payLink}
-                          className="rounded-[var(--radius-control)] bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-strong"
+                          className="rounded-[var(--radius-control)] bg-brand px-3 py-1.5 text-xs font-medium text-on-brand hover:bg-brand-strong"
                         >
                           Pay via UPI
                         </a>

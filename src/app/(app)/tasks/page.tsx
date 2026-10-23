@@ -189,7 +189,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         />
         <ParamSelect param="group" allLabel="Group by due date" options={[{ value: "status", label: "Group by status" }]} />
         {filtersActive ? (
-          <Link href={`/tasks${tab === "mine" ? "" : `?tab=${tab}`}`} className="text-xs text-brand hover:underline">
+          <Link href={`/tasks${tab === "mine" ? "" : `?tab=${tab}`}`} className="inline-flex items-center text-xs text-brand hover:underline">
             Clear filters
           </Link>
         ) : null}

@@ -199,7 +199,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
               <ProgressBar value={done} max={total || 1} tone="success" />
               <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {TASK_STATUSES.map((s) => (
-                  <li key={s} className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 px-3 py-2">
+                  <li key={s} className="rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2">
                     <div className="flex items-center gap-1.5 text-xs text-muted">
                       <span className={cx("h-2 w-2 rounded-full", TASK_STATUS_DOT[s])} />
                       {TASK_STATUS_LABEL[s]}
@@ -455,7 +455,7 @@ async function ProjectNotes({ orgId, projectId, canComment }: { orgId: string; p
       ) : (
         <ul className="space-y-3">
           {comments.map((c) => (
-            <li key={c.id} className="rounded-[var(--radius-control)] bg-surface-2/60 px-3 py-2">
+            <li key={c.id} className="rounded-[var(--radius-control)] bg-surface-2 px-3 py-2">
               <div className="text-xs text-muted">
                 <span className="font-medium text-text">{nameOf(c.authorId)}</span> · {fmtDateTime(c.createdAt)}
               </div>
@@ -524,7 +524,7 @@ async function ExpensesTab({ orgId, projectId, canWrite, total }: { orgId: strin
         <Field label="Date spent">
           <Input name="spentOn" type="date" defaultValue={dateInput(new Date())} />
         </Field>
-        <label className="flex items-center gap-2 self-end rounded-[var(--radius-control)] border border-border bg-surface-2/50 px-3 py-2 text-sm">
+        <label className="flex items-center gap-2 self-end rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm">
           <input type="checkbox" name="gstDeductible" className="h-4 w-4 accent-[var(--color-brand)]" />
           GST claimable
         </label>

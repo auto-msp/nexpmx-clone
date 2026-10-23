@@ -46,7 +46,7 @@ export function StatusSelect({
           });
         }}
         className={cx(
-          "rounded-[var(--radius-control)] border border-border bg-surface-2 px-2 py-1 text-xs text-text focus:border-brand disabled:opacity-60",
+          "rounded-[var(--radius-control)] border border-border-strong bg-surface px-2 py-1 text-xs text-text focus:border-brand disabled:opacity-60",
           value === "DONE" && "text-success",
         )}
       >

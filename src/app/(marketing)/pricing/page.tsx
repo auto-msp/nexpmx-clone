@@ -1,3 +1,4 @@
+import { Icon } from "@/components/kit-icons";
 import type { Metadata } from "next";
 import { ButtonLink, Card, Table } from "@/components/ui";
 import { PLANS, formatInr } from "@/lib/plans";
@@ -58,7 +59,7 @@ export default function PricingPage() {
             <ul className="mt-4 flex-1 space-y-2 text-sm">
               {plan.features.map((f) => (
                 <li key={f} className="flex gap-2">
-                  <span aria-hidden className="text-brand">✓</span>
+                  <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                   <span className="text-muted">{f}</span>
                 </li>
               ))}

@@ -107,7 +107,7 @@ export function CheckoutClient({
           setMessage("Payment window closed before completion. You can retry any time.");
         },
       },
-      theme: { color: "#2563eb" },
+      theme: { color: "#0b6b5b" },
     });
     rzp.open();
   }
@@ -118,7 +118,7 @@ export function CheckoutClient({
         type="button"
         onClick={openCheckout}
         disabled={state === "opening"}
-        className="rounded-[var(--radius-control)] bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-strong disabled:opacity-50"
+        className="rounded-[var(--radius-control)] bg-brand px-6 py-2.5 text-sm font-medium text-on-brand hover:bg-brand-strong disabled:opacity-50"
       >
         {state === "opening" ? "Waiting for payment…" : "Pay now"}
       </button>

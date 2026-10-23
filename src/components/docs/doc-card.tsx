@@ -38,7 +38,7 @@ export function TypeTile({ mime, size = "md" }: { mime: string; size?: "sm" | "m
 export function DocCard({ doc, canWrite }: { doc: DocRow; canWrite: boolean }) {
   const linked = [doc.clientName, doc.projectName].filter(Boolean) as string[];
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-brand/60">
+    <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-brand">
       <div className="flex items-start gap-3">
         <TypeTile mime={doc.mimeType} />
         <div className="min-w-0 flex-1">
@@ -54,7 +54,7 @@ export function DocCard({ doc, canWrite }: { doc: DocRow; canWrite: boolean }) {
         <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{formatBytes(doc.sizeBytes)}</span>
         {linked.length > 0 ? (
           linked.map((l) => (
-            <span key={l} className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-brand">
+            <span key={l} className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-brand">
               <Icon name="link" className="h-3 w-3" />
               {l}
             </span>

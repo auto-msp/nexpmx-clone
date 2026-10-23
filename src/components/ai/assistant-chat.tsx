@@ -100,7 +100,7 @@ export function AssistantChat({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {starters.map((s) => (
           <section key={s.title} className="flex flex-col rounded-[var(--radius-card)] border border-border bg-surface p-5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/15 text-brand">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand">
               <Icon name={s.icon} className="h-4 w-4" />
             </span>
             <h2 className="mt-3 text-sm font-semibold">{s.title}</h2>
@@ -111,7 +111,7 @@ export function AssistantChat({
                   key={p}
                   type="button"
                   onClick={() => ask(p)}
-                  className="rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-left text-xs text-text transition-colors hover:border-brand"
+                  className="rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-2 text-left text-xs text-text transition-colors hover:border-brand"
                 >
                   {p}
                 </button>
@@ -129,13 +129,13 @@ export function AssistantChat({
             turns.map((t) => (
               <div key={t.id} className="space-y-2">
                 <div className="flex justify-end">
-                  <p className="max-w-[85%] rounded-2xl rounded-br-sm bg-brand/15 px-4 py-2 text-sm">{t.question}</p>
+                  <p className="max-w-[85%] rounded-2xl rounded-br-sm bg-brand-soft px-4 py-2 text-sm">{t.question}</p>
                 </div>
                 <div className="flex">
                   <div
                     className={cx(
                       "max-w-[92%] rounded-2xl rounded-bl-sm border px-4 py-3 text-sm",
-                      t.state === "error" ? "border-danger/40 bg-danger/10 text-danger" : "border-border bg-surface-2",
+                      t.state === "error" ? "border-danger/40 bg-danger-soft text-danger" : "border-border bg-surface-2",
                     )}
                   >
                     {t.state === "pending" ? (
@@ -185,7 +185,7 @@ export function AssistantChat({
               onChange={(e) => setInput(e.target.value)}
               maxLength={300}
               placeholder="e.g. What did we decide about pricing for our biggest client?"
-              className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-brand"
+              className="w-full rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 py-2 text-sm text-text focus:border-brand"
             />
           </label>
           <Button type="submit" disabled={input.trim().length < 3}>

@@ -111,7 +111,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
             icon="search"
             title="No projects match these filters"
             hint="Adjust the search or filters to see more."
-            action={<Link href="/projects" className="text-sm text-brand hover:underline">Clear filters</Link>}
+            action={<Link href="/projects" className="inline-flex items-center text-sm text-brand hover:underline">Clear filters</Link>}
           />
         ) : (
           <EmptyPanel
@@ -127,7 +127,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
             const t = progress.get(p.id) ?? { done: 0, all: 0 };
             const dl = deadlineInfo(p.deadline, p.status);
             return (
-              <tr key={p.id} className="hover:bg-surface-2/40">
+              <tr key={p.id} className="hover:bg-surface-2">
                 <td className="px-4 py-3">
                   <Link href={`/projects/${p.id}`} className="font-medium hover:text-brand">{p.name}</Link>
                   <div className="text-xs text-muted">{projectTypeLabel(p.projectType)}</div>

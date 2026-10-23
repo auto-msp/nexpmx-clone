@@ -85,7 +85,7 @@ export default async function WhatWeKnowPage({ searchParams }: { searchParams: P
             aria-current={cat === c.id ? "true" : undefined}
             className={cx(
               "rounded-full border px-3 py-1 text-xs font-medium",
-              cat === c.id ? "border-brand bg-brand/15 text-brand" : "border-border text-muted hover:text-text",
+              cat === c.id ? "border-brand bg-brand-soft text-brand" : "border-border text-muted hover:text-text",
             )}
           >
             {c.label}
@@ -95,7 +95,7 @@ export default async function WhatWeKnowPage({ searchParams }: { searchParams: P
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <SearchInput param="q" placeholder="Search notes…" className="w-full sm:w-72" />
-        <Link href={href(cat, q, !archived)} className="text-xs text-brand hover:underline">
+        <Link href={href(cat, q, !archived)} className="inline-flex items-center text-xs text-brand hover:underline">
           {archived ? "Back to active notes" : archivedCount ? `Show archived (${archivedCount})` : "Show archived"}
         </Link>
       </div>

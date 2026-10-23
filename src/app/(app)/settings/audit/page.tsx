@@ -103,10 +103,10 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
         <EmptyPanel icon="clock" title="No events match" hint={filtered ? "Try clearing a filter." : "Changes made in the workspace will appear here."} />
       ) : (
         <Panel flush>
-          <div className="overflow-x-auto">
+          <div className="data-table overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-surface-2/60 text-xs text-muted">
+                <tr className="border-b border-border bg-surface-2 text-xs text-muted">
                   <th className="px-4 py-3 font-medium">When</th>
                   <th className="px-4 py-3 font-medium">Who</th>
                   <th className="px-4 py-3 font-medium">Action</th>

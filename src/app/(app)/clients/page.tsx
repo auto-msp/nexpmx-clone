@@ -113,7 +113,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
       />
 
       {atCap && canWrite ? (
-        <p className="mb-4 rounded-[var(--radius-control)] border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">
+        <p className="mb-4 rounded-[var(--radius-control)] border border-warn/40 bg-warn-soft px-3 py-2 text-sm text-warn">
           You have reached the active-client limit of the {plan.name} plan. Archive a client or <Link href="/settings/plan" className="underline">upgrade your plan</Link> to add more.
         </p>
       ) : null}
@@ -141,7 +141,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
             title="No clients match these filters"
             hint="Try a different search, or clear the filters to see everyone."
             action={
-              <Link href="/clients" className="text-sm text-brand hover:underline">
+              <Link href="/clients" className="inline-flex items-center text-sm text-brand hover:underline">
                 Clear filters
               </Link>
             }
@@ -159,7 +159,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
           {clients.map((c) => {
             const f = followUp(c.nextFollowUpAt);
             return (
-              <tr key={c.id} className="hover:bg-surface-2/40">
+              <tr key={c.id} className="hover:bg-surface-2">
                 <td className="px-4 py-3">
                   <Link href={`/clients/${c.id}`} className="font-medium hover:text-brand">
                     {c.name}
@@ -190,7 +190,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
                 <div className="flex items-start gap-3">
                   <span
                     aria-hidden
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-brand/15 text-sm font-semibold text-brand"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-brand-soft text-sm font-semibold text-brand"
                   >
                     {initialsOf(c.name)}
                   </span>

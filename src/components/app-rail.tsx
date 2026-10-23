@@ -608,7 +608,7 @@ export function MobileNav(props: Omit<React.ComponentProps<typeof ModuleSubnav>,
 /* ── Top bar ────────────────────────────────────────────────────────────── */
 
 const iconButton =
-  "flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-border-strong text-text-2 hover:bg-surface-2 hover:text-text max-md:h-11 max-md:w-11";
+  "flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-border-strong text-text-2 hover:bg-surface-2 hover:text-text max-md:h-11 max-md:w-11";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -684,11 +684,11 @@ export function TopBar({
               <Icon name="menu" />
             </button>
           ) : null}
-          <span className="font-semibold text-text">{t.module}</span>
+          <span className={cx("font-semibold text-text", t.page && "hidden sm:inline")}>{t.module}</span>
           {t.page ? (
             <>
-              <Icon name="chevronRight" className="h-3.5 w-3.5 shrink-0 text-muted" />
-              <span className="truncate text-muted">{t.page}</span>
+              <Icon name="chevronRight" className="hidden h-3.5 w-3.5 shrink-0 text-muted sm:block" />
+              <span className="truncate font-semibold text-text sm:font-normal sm:text-muted">{t.page}</span>
             </>
           ) : null}
         </div>

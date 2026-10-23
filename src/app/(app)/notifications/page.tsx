@@ -232,8 +232,8 @@ export default async function NotificationsPage({ searchParams }: { searchParams
                 </>
               );
               return (
-                <li key={e.id} className={cx("flex items-start gap-3 px-4 py-3", e.unread && "bg-brand/5")}>
-                  <span className={cx("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full", e.unread ? "bg-brand/15 text-brand" : "bg-surface-2 text-muted")}>
+                <li key={e.id} className={cx("flex items-start gap-3 px-4 py-3", e.unread && "bg-surface-2")}>
+                  <span className={cx("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full", e.unread ? "bg-brand-soft text-brand" : "bg-surface-2 text-muted")}>
                     <Icon name={CAT_ICON[e.cat]} className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">

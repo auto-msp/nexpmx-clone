@@ -44,7 +44,7 @@ export function GuideBrowser() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search the help articles…"
           aria-label="Search help articles"
-          className="w-full rounded-[var(--radius-control)] border border-border bg-surface-2 py-2.5 pl-9 pr-3 text-sm text-text focus:border-brand"
+          className="w-full rounded-[var(--radius-control)] border border-border-strong bg-surface py-2.5 pl-9 pr-3 text-sm text-text focus:border-brand"
         />
       </div>
 
@@ -72,7 +72,7 @@ export function GuideBrowser() {
                   disabled={searching}
                   className="flex w-full items-center gap-3 px-5 py-3.5 text-left disabled:cursor-default"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
                     <Icon name={c.icon} className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -92,7 +92,7 @@ export function GuideBrowser() {
                             type="button"
                             onClick={() => setOpenArticle(openArticle === a.id ? null : a.id)}
                             aria-expanded={isOpen}
-                            className="flex w-full items-start gap-3 px-5 py-3 text-left hover:bg-surface-2/50"
+                            className="flex w-full items-start gap-3 px-5 py-3 text-left hover:bg-surface-2"
                           >
                             <span className="min-w-0 flex-1">
                               <span className="block text-sm font-medium">{a.title}</span>
@@ -111,7 +111,7 @@ export function GuideBrowser() {
                                 ))}
                               </ol>
                               {a.tip ? (
-                                <p className="mt-3 rounded-[var(--radius-control)] border border-brand/30 bg-brand/10 px-3 py-2 text-xs">
+                                <p className="mt-3 rounded-[var(--radius-control)] border border-brand/30 bg-brand-soft px-3 py-2 text-xs">
                                   <span className="font-semibold text-brand">Tip · </span>
                                   {a.tip}
                                 </p>

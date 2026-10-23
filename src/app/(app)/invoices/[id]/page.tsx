@@ -212,7 +212,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             </div>
             {upi ? (
               <div className="mt-4 flex flex-col gap-2">
-                <a href={upi} className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-strong">
+                <a href={upi} className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-strong">
                   <Icon name="rupee" />
                   Pay via UPI
                 </a>

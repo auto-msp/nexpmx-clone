@@ -93,7 +93,7 @@ export default async function DecisionsPage({ searchParams }: { searchParams: Pr
         <ParamSelect param="project" allLabel="All projects" options={projects.map((p) => ({ value: p.id, label: p.name }))} />
         <ParamSelect param="client" allLabel="All clients" options={clients.map((c) => ({ value: c.id, label: c.name }))} />
         {filtered ? (
-          <Link href="/decisions" className="text-xs text-brand hover:underline">Clear filters</Link>
+          <Link href="/decisions" className="inline-flex items-center text-xs text-brand hover:underline">Clear filters</Link>
         ) : (
           <span className="text-xs text-muted">{total} logged</span>
         )}
@@ -121,10 +121,10 @@ export default async function DecisionsPage({ searchParams }: { searchParams: Pr
                       <span>·</span>
                       <span title={fmtDate(d.createdAt)}>{relTime(d.createdAt)}</span>
                       {d.project ? (
-                        <Link href={`/projects/${d.project.id}`}><Pill tone="brand">{d.project.name}</Pill></Link>
+                        <Link href={`/projects/${d.project.id}`} className="inline-flex items-center"><Pill tone="brand">{d.project.name}</Pill></Link>
                       ) : null}
                       {d.client ? (
-                        <Link href={`/clients/${d.client.id}`}><Pill>{d.client.name}</Pill></Link>
+                        <Link href={`/clients/${d.client.id}`} className="inline-flex items-center"><Pill>{d.client.name}</Pill></Link>
                       ) : null}
                     </p>
                   </div>

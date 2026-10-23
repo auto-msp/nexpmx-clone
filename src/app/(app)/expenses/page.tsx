@@ -100,10 +100,10 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
         />
       ) : (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_18rem]">
-          <div className="overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
+          <div className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
             <table className="w-full min-w-[44rem] text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-surface-2/60 text-xs text-muted">
+                <tr className="border-b border-border bg-surface-2 text-xs text-muted">
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Category</th>
                   <th className="px-4 py-3 font-medium">Description</th>
@@ -116,7 +116,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
               </thead>
               <tbody className="divide-y divide-border">
                 {rows.map((e) => (
-                  <tr key={e.id} className="hover:bg-surface-2/40">
+                  <tr key={e.id} className="hover:bg-surface-2">
                     <td className="whitespace-nowrap px-4 py-3 text-muted">{fmtDate(e.spentOn)}</td>
                     <td className="px-4 py-3">{e.category}</td>
                     <td className="max-w-xs px-4 py-3">

@@ -89,10 +89,10 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
       ) : visible.length === 0 ? (
         <EmptyPanel icon="search" title="No invoices match" hint="Change the status tab, client or search." />
       ) : (
-        <div className="overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
+        <div className="data-table overflow-x-auto rounded-[var(--radius-card)] border border-border bg-surface">
           <table className="w-full min-w-[46rem] text-left text-sm">
             <thead>
-              <tr className="border-b border-border bg-surface-2/60 text-xs text-muted">
+              <tr className="border-b border-border bg-surface-2 text-xs text-muted">
                 <th className="px-4 py-3 font-medium">Number</th>
                 <th className="px-4 py-3 font-medium">Client</th>
                 <th className="px-4 py-3 font-medium">Issued</th>
@@ -104,7 +104,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
             </thead>
             <tbody className="divide-y divide-border">
               {visible.map(({ inv, tot, eff }) => (
-                <tr key={inv.id} className="hover:bg-surface-2/40">
+                <tr key={inv.id} className="hover:bg-surface-2">
                   <td className="px-4 py-3 font-medium">
                     <Link href={`/invoices/${inv.id}`} className="hover:text-brand">{inv.number}</Link>
                   </td>
@@ -125,7 +125,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-border bg-surface-2/60 font-semibold">
+              <tr className="border-t border-border bg-surface-2 font-semibold">
                 <td className="px-4 py-3" colSpan={4}>
                   {visible.length} invoice{visible.length === 1 ? "" : "s"} <span className="font-normal text-muted">· GST {inr(taxShown)}</span>
                 </td>

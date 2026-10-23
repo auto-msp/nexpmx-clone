@@ -51,7 +51,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
         subtitle="A few questions at a time. Short answers in your own words are enough, and there is always another batch."
       />
 
-      <div className="mb-5 inline-flex rounded-full border border-border bg-surface-2 p-1" role="tablist">
+      <div className="mb-5 inline-flex rounded-[var(--radius-control)] border border-border bg-surface-2 p-0.5" role="tablist">
         {(
           [
             ["open", `To answer (${remaining.length + openQs.length})`],
@@ -63,7 +63,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
             href={href(id, area)}
             role="tab"
             aria-selected={tab === id}
-            className={cx("rounded-full px-4 py-1.5 text-sm font-medium", tab === id ? "bg-brand text-white" : "text-muted hover:text-text")}
+            className={cx("inline-flex min-h-8 items-center rounded-[4px] px-3 text-sm font-medium max-md:min-h-11", tab === id ? "bg-surface text-text shadow-[0_0_0_1px_var(--color-border-strong)]" : "text-muted hover:text-text")}
           >
             {label}
           </Link>
@@ -80,7 +80,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
                 aria-current={area === c.id ? "true" : undefined}
                 className={cx(
                   "rounded-full border px-3 py-1 text-xs font-medium",
-                  area === c.id ? "border-brand bg-brand/15 text-brand" : "border-border text-muted hover:text-text",
+                  area === c.id ? "border-brand bg-brand-soft text-brand" : "border-border text-muted hover:text-text",
                 )}
               >
                 {c.label}
@@ -131,7 +131,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
             ) : (
               <ul className="space-y-5">
                 {openQs.map((q) => (
-                  <li key={q.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-4">
+                  <li key={q.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-sm font-medium">{q.question}</p>
                       {canWrite ? (
@@ -170,7 +170,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
           ) : null}
         </div>
       ) : answeredCount === 0 ? (
-        <EmptyPanel icon="help" title="Nothing answered yet" hint="Answers you give are saved to your memory and show up here." action={<Link href="/memory/questions" className="text-sm font-medium text-brand hover:underline">Start answering</Link>} />
+        <EmptyPanel icon="help" title="Nothing answered yet" hint="Answers you give are saved to your memory and show up here." action={<Link href="/memory/questions" className="inline-flex items-center text-sm font-medium text-brand hover:underline">Start answering</Link>} />
       ) : (
         <div className="space-y-6">
           {answeredQs.length ? (
@@ -187,7 +187,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
             </Panel>
           ) : null}
           {guidedFacts.filter((f) => f.status === "ACTIVE").length ? (
-            <Panel title="Guided questions" action={<Link href="/memory/what-we-know" className="text-xs text-brand hover:underline">Edit in notes</Link>}>
+            <Panel title="Guided questions" action={<Link href="/memory/what-we-know" className="inline-flex items-center text-xs text-brand hover:underline">Edit in notes</Link>}>
               <ul className="space-y-4">
                 {guidedFacts
                   .filter((f) => f.status === "ACTIVE")

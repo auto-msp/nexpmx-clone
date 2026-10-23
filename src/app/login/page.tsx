@@ -17,8 +17,8 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-[var(--radius-card)] border border-border bg-surface p-8">
-        <div className="flex items-center gap-2 font-semibold tracking-tight">
-          <span aria-hidden className="inline-block h-6 w-6 rounded-md bg-brand" />
+        <div className="flex items-center gap-2 font-display text-lg font-semibold">
+          <span aria-hidden className="inline-block h-6 w-6 rounded-[var(--radius-badge)] bg-brand" />
           BizMemory
         </div>
         <h1 className="mt-6 text-xl font-semibold">Log in to your workspace</h1>

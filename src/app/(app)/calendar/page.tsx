@@ -71,7 +71,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const newEvent = <NewEventButton defaultDate={newEventDate} clients={clients} />;
   const viewProps = { data, today, focus, href: (v: CalendarView, d: string) => href(v, d), clients, canWrite };
 
-  const navBtn = "inline-flex h-9 items-center justify-center rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 text-sm text-text hover:border-brand";
+  const navBtn = "inline-flex h-9 items-center justify-center rounded-[var(--radius-control)] border border-border-strong bg-surface px-3 text-sm text-text hover:bg-surface-2";
 
   return (
     <div className="mx-auto max-w-7xl">

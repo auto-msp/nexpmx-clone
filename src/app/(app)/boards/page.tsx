@@ -28,14 +28,14 @@ export default async function BoardsPage() {
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1.5 text-xs font-medium text-muted">Type</legend>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-3 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand/10">
+            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--radius-control)] border border-border bg-surface-2 p-3 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
               <input type="radio" name="kind" value="WHITEBOARD" defaultChecked className="mt-1 accent-[var(--color-brand)]" />
               <span>
                 <span className="font-medium">Whiteboard</span>
                 <span className="block text-xs text-muted">Free-form notes, text and shapes.</span>
               </span>
             </label>
-            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--radius-control)] border border-border bg-surface-2/50 p-3 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand/10">
+            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--radius-control)] border border-border bg-surface-2 p-3 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
               <input type="radio" name="kind" value="MINDMAP" className="mt-1 accent-[var(--color-brand)]" />
               <span>
                 <span className="font-medium">Mind map</span>

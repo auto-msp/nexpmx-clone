@@ -88,7 +88,7 @@ export default async function TeamDirectoryPage({ searchParams }: { searchParams
       <PageHeader title="Team directory" subtitle="Everyone with access to this workspace, and every invitation still open." actions={inviteBtn} />
 
       {inviteUrl ? (
-        <div className="mb-6 rounded-[var(--radius-card)] border border-brand/50 bg-brand/5 p-4">
+        <div className="mb-6 rounded-[var(--radius-card)] border border-brand bg-surface-2 p-4">
           <p className="text-sm font-medium">Invitation ready. Share this link now.</p>
           <p className="mt-1 text-xs text-muted">It works once, for the invited address only, and expires in 7 days. It will not be shown again after you dismiss it.</p>
           <code className="mt-3 block overflow-x-auto rounded-[var(--radius-control)] border border-border bg-surface-2 px-3 py-2 text-xs">{inviteUrl}</code>

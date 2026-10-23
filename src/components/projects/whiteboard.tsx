@@ -438,7 +438,7 @@ export function Whiteboard({
                 <span className="mx-1 h-5 w-px bg-border" aria-hidden />
                 <button
                   type="button"
-                  className={cx(toolBtn, tool === "connect" && "border-brand bg-brand/15 text-brand")}
+                  className={cx(toolBtn, tool === "connect" && "border-brand bg-brand-soft text-brand")}
                   aria-pressed={tool === "connect"}
                   onClick={() => {
                     setTool((t) => (t === "connect" ? "select" : "connect"));
@@ -504,7 +504,7 @@ export function Whiteboard({
         </div>
       </div>
       {saveError && saveState === "error" ? (
-        <p role="alert" className="rounded-[var(--radius-control)] border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-[var(--radius-control)] border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
           {saveError}
         </p>
       ) : null}
@@ -647,7 +647,7 @@ export function Whiteboard({
         ) : null}
 
         {tool === "connect" ? (
-          <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand">
+          <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
             {connectFrom ? "Now click the node to connect to" : "Click the first node"}
           </div>
         ) : null}

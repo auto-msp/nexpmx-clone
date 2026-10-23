@@ -73,7 +73,7 @@ export default async function ProfileSettingsPage() {
         <Panel
           title="Workspace"
           action={
-            <Link href="/settings/company" className="text-xs text-brand hover:underline">
+            <Link href="/settings/company" className="inline-flex items-center text-xs text-brand hover:underline">
               {canManage ? "Edit company details" : "View company details"}
             </Link>
           }

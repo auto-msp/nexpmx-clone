@@ -54,7 +54,7 @@ export function TaskCard({
   const priorityLabel = TASK_PRIORITIES.find((p) => p.value === task.priority)?.label ?? task.priority;
 
   return (
-    <article className="rounded-[var(--radius-control)] border border-border bg-surface-2/60 p-3 text-sm">
+    <article className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-3 text-sm">
       <div className="flex items-start justify-between gap-2">
         <h3 className={cx("min-w-0 break-words font-medium", task.status === "DONE" && "text-muted line-through")}>{task.title}</h3>
         <span className="mt-1.5 flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted" title={`${priorityLabel} priority`}>

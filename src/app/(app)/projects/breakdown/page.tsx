@@ -98,7 +98,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
       </div>
 
       {projectList.length === 0 ? (
-        <EmptyPanel icon="folder" title="No projects yet" hint="Create a project first, then break it into milestones and tasks." action={<Link href="/projects" className="text-sm text-brand hover:underline">Go to projects</Link>} />
+        <EmptyPanel icon="folder" title="No projects yet" hint="Create a project first, then break it into milestones and tasks." action={<Link href="/projects" className="inline-flex items-center text-sm text-brand hover:underline">Go to projects</Link>} />
       ) : visible.length === 0 ? (
         <EmptyPanel icon="tasks" title="Nothing to break down yet" hint="None of your projects has tasks or milestones. Open a project and add some." />
       ) : (
@@ -130,10 +130,10 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                   </span>
                 }
               >
-                <div className="overflow-x-auto">
+                <div className="data-table overflow-x-auto">
                   <table className="w-full min-w-[960px] table-fixed text-left text-sm">
                     <thead>
-                      <tr className="border-b border-border bg-surface-2/60 text-xs text-muted">
+                      <tr className="border-b border-border bg-surface-2 text-xs text-muted">
                         <th className="w-52 px-4 py-3 font-mono font-semibold">Milestone</th>
                         {TASK_STATUSES.map((s) => (
                           <th key={s} className="px-3 py-3 font-mono font-semibold">
@@ -172,7 +172,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                                   ) : (
                                     <div className="space-y-1.5">
                                       {cell.map((t) => (
-                                        <div key={t.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2/60 p-2">
+                                        <div key={t.id} className="rounded-[var(--radius-control)] border border-border bg-surface-2 p-2">
                                           <div className="flex items-start gap-1.5">
                                             <span className={cx("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", PRIORITY_TONE[t.priority] ?? "bg-muted")} title={`${t.priority.toLowerCase()} priority`} />
                                             <Link
@@ -204,7 +204,7 @@ export default async function TaskBreakdownPage({ searchParams }: { searchParams
                       })}
                     </tbody>
                     <tfoot>
-                      <tr className="border-t border-border bg-surface-2/40 text-xs text-muted">
+                      <tr className="border-t border-border bg-surface-2 text-xs text-muted">
                         <td className="px-4 py-2.5 font-medium">Total</td>
                         {TASK_STATUSES.map((s) => (
                           <td key={s} className="px-3 py-2.5 font-medium text-text">{colTotals[s]}</td>

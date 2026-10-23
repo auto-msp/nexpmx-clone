@@ -57,8 +57,8 @@ export function SettingsNav() {
                 href={it.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "flex items-center gap-3 whitespace-nowrap rounded-[var(--radius-control)] border px-3 py-2 lg:items-start lg:whitespace-normal",
-                  active ? "border-brand/50 bg-brand/10 text-text" : "border-transparent text-muted hover:bg-surface-2 hover:text-text",
+                  "flex min-h-11 items-center gap-3 whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 lg:items-start lg:whitespace-normal",
+                  active ? "bg-surface-2 text-text shadow-[inset_2px_0_0_var(--color-brand)]" : "text-text-2 hover:bg-surface-2 hover:text-text",
                 )}
               >
                 <Icon name={it.icon} className={cx("h-4 w-4 shrink-0 lg:mt-0.5", active ? "text-brand" : "")} />
