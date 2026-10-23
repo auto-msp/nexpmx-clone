@@ -139,16 +139,20 @@ component.
 - **Inputs / selects / textareas:** 36px (44px touch), `border-strong`, visible label above,
   helper text below, error state as above. Native select with one shared chevron.
 - **Table:** sticky header on `surface-2`, 12px sentence-case column headers, tabular
-  figures, amounts right-aligned, row hover `surface-2`, sort/filter above, actions in a
-  fixed-width right column, totals row pinned. At < 768px wide tables become stacked
-  records (primary cell on the first line, amount and status beneath).
+  figures, amounts right-aligned, row hover `surface-2`, filters above, actions in the
+  right column, totals row at the foot. Long lists keep the header visible while the list
+  scrolls (desktop). At < 768px a table scrolls sideways *inside its own region* (the page
+  never scrolls sideways) with the first column pinned and cells kept on one line.
 - **Badge:** 4px radius, 12px, `*-soft` fill with matching text and a leading dot or icon.
 - **Panel:** `surface`, 1px `border`, 8px radius; header row (title left, actions right).
 - **Modal / drawer:** `shadow-modal`, focus trap, Esc closes, returns focus, scrim at 50%.
 - **Toast:** `shadow-pop`, bottom-left on desktop, full-width on mobile, `role="status"`.
 - **Navigation:** icon rail + section list stay at ≥ 1024px. Below that the rail collapses
-  to a top bar with a menu button opening the same items in a drawer (same routes, same
-  labels).
+  to a top bar with a menu button opening the same items in a drawer (module switcher on
+  top, then the current module's links, credits, timer and account). Same routes, same
+  labels. The header shows the page title on mobile and `Module › Page` on desktop.
+- **Assistant entry:** the former floating circle is now an "Ask AI" button in the header
+  that opens the same prompt popover under it, so nothing floats over page content.
 
 ## How this answers the audit
 
@@ -160,8 +164,8 @@ component.
 | 4 | 10–11px mono all-caps labels | Type scale (min 12px, sentence case); swept per module |
 | 5 | Contrast failures | New tokens (table above) |
 | 6 | Generic card grids | Principles 1 and 4; module pages re-laid out as regions and tables |
-| 7 | Accent used for everything; floating AI button collides | Principle 2; AI button becomes a nav-integrated entry, no overlay on content |
-| 8 | Sidebar overload | Shell commit: credits and focus timer move out of the always-on column |
+| 7 | Accent used for everything; floating AI button collides | Principle 2; AI entry moved into the header; primary buttons reserved for one action per region |
+| 8 | Sidebar overload | Credits and focus timer compacted to one row each; section labels quiet; AI links as a plain list |
 | 9 | Inconsistent controls | One Button / Input / Tabs component set |
 | 10 | Table readability | Table rule; tabular figures are global |
 | 11 | Generic landing page | Marketing layout reworked, left-aligned, product-led |
