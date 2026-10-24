@@ -124,7 +124,9 @@ test("expired org can use the app after activation", async ({ page }) => {
   // expired was activated by the webhook in the prior test.
   await loginAs(page, expired);
   await page.goto("/overview");
-  await expect(page.getByRole("heading", { name: /growth plan overview/i })).toBeVisible();
+  // v0.5.0 dashboard leads with a time-of-day greeting; the plan/state flip
+  // itself is asserted against the DB in the webhook test above.
+  await expect(page.getByRole("heading", { name: /good (morning|afternoon|evening)/i })).toBeVisible();
   await expect(page.getByText(/your trial has ended/i)).toHaveCount(0);
 });
 

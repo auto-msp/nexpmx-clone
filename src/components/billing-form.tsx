@@ -60,7 +60,7 @@ export function PlanChooser({
               className={
                 active
                   ? "rounded-[var(--radius-card)] border-2 border-brand bg-surface p-5 text-left"
-                  : "rounded-[var(--radius-card)] border border-border bg-surface p-5 text-left hover:border-brand/50"
+                  : "rounded-[var(--radius-card)] border border-border bg-surface p-5 text-left hover:border-brand"
               }
             >
               <div className="text-sm font-medium">{p.name}</div>
@@ -70,7 +70,7 @@ export function PlanChooser({
               </div>
               <p className="mt-2 text-xs text-muted">{p.blurb}</p>
               {p.id === currentPlan ? (
-                <span className="mt-3 inline-block rounded-full bg-brand/10 px-2 py-0.5 text-xs text-brand">
+                <span className="mt-3 inline-block rounded-full bg-brand-soft px-2 py-0.5 text-xs text-brand">
                   current
                 </span>
               ) : null}
@@ -117,7 +117,7 @@ export function PlanChooser({
         <button
           type="submit"
           disabled={!validSeats || !seatsCoverUsage}
-          className="rounded-[var(--radius-control)] bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-[var(--radius-control)] bg-brand px-5 py-2 text-sm font-medium text-on-brand hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-50"
         >
           {billingReady ? "Continue to payment" : "Contact us to activate"}
         </button>

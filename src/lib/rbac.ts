@@ -26,7 +26,9 @@ export type Permission =
   | "document:read"
   | "document:write"
   | "task:write"
-  | "automation:write";
+  | "automation:write"
+  | "memory:write"
+  | "comms:write";
 
 const MATRIX: Record<Role, Permission[]> = {
   OWNER: [
@@ -41,6 +43,8 @@ const MATRIX: Record<Role, Permission[]> = {
     "document:write",
     "task:write",
     "automation:write",
+    "memory:write",
+    "comms:write",
   ],
   ADMIN: [
     "org:invite",
@@ -53,6 +57,8 @@ const MATRIX: Record<Role, Permission[]> = {
     "document:write",
     "task:write",
     "automation:write",
+    "memory:write",
+    "comms:write",
   ],
   MANAGER: [
     "client:write",
@@ -61,8 +67,10 @@ const MATRIX: Record<Role, Permission[]> = {
     "decision:write",
     "document:write",
     "task:write",
+    "memory:write",
+    "comms:write",
   ],
-  MEMBER: ["project:write", "decision:write", "document:write", "task:write"],
+  MEMBER: ["project:write", "decision:write", "document:write", "task:write", "memory:write", "comms:write"],
 };
 
 export function can(role: string, permission: Permission): boolean {

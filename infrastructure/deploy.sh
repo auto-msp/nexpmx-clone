@@ -17,7 +17,10 @@ echo "==> Installing dependencies"
 npm ci --no-audit --no-fund
 
 echo "==> Applying database migrations"
+# npm may block lifecycle scripts; generate the client explicitly.
+npx prisma generate
 npx prisma migrate deploy
+npx prisma migrate status
 
 echo "==> Building"
 npm run build

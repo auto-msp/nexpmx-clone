@@ -4,13 +4,12 @@ import { prisma } from "@/lib/db";
 import { getOrgContext } from "@/lib/tenancy";
 import { planOf } from "@/lib/plans";
 import { getOrCreateSubscription, subscriptionView } from "@/lib/subscription";
-import { AppSidebar, UserMenu, TrialBanner, TrialGate } from "@/components/app-shell";
+import { IconRail, ModuleSubnav, MobileNav, TopBar, CommandPalette } from "@/components/app-rail";
+import { TrialBanner, TrialGate } from "@/components/app-shell";
+import { AI_EMPLOYEES } from "@/lib/ai-team";
+import { getSubnavData } from "@/lib/subnav";
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login?callbackUrl=%2Foverview");
 
@@ -22,28 +21,55 @@ export default async function AppLayout({
   const sub = await getOrCreateSubscription(ctx.orgId);
   const view = subscriptionView(sub);
 
-  const org = await prisma.organization.findUnique({
-    where: { id: ctx.orgId },
-    select: { name: true, plan: true },
-  });
+  const [org, enabledEmployees, subnav] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: ctx.orgId },
+      select: { name: true, plan: true, aiCreditsUsed: true },
+    }),
+    prisma.aiEmployee.findMany({ where: { orgId: ctx.orgId, enabled: true }, select: { key: true } }),
+    getSubnavData(ctx.orgId, session.user.id),
+  ]);
   const plan = planOf(org?.plan);
+  const teamNames = AI_EMPLOYEES.filter((e) => enabledEmployees.some((row) => row.key === e.key)).map((e) => e.name);
+
+  const userName = session.user.name ?? session.user.email ?? "Account";
+  const userImage = session.user.image ?? null;
+
+  const navProps = {
+    orgName: org?.name ?? "Workspace",
+    userName,
+    userRole: ctx.role,
+    userImage,
+    credits: { used: org?.aiCreditsUsed ?? 0, limit: plan.aiCreditsPerMonth, teamNames },
+    dynamic: subnav.data,
+  };
+  const rail = (
+    <>
+      <IconRail />
+      <ModuleSubnav {...navProps} />
+    </>
+  );
+  const mobileNav = <MobileNav {...navProps} />;
+  const skipLink = (
+    <a
+      href="#main"
+      className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-[var(--radius-control)] focus:bg-brand focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-on-brand"
+    >
+      Skip to content
+    </a>
+  );
 
   // Trial expiry gate: expired orgs see the plan chooser, not app routes
   // (BUSINESS_RULES RULE-ENT-04). Data is untouched; the gate is read-only
-  // until a plan is set (manual until billing lands, KNOWN_LIMITATIONS #2).
+  // until a plan is purchased.
   if (!view.entitled) {
     return (
       <div className="flex min-h-dvh">
-        <AppSidebar
-          plan={plan.name}
-          orgName={org?.name ?? "Workspace"}
-          trial={{ daysRemaining: null, expired: true }}
-        />
+        {skipLink}
+        {rail}
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-end gap-3 border-b border-border bg-bg/80 px-4 backdrop-blur sm:px-6">
-            <UserMenu userName={session.user.name ?? session.user.email ?? "Account"} />
-          </header>
-          <main className="flex-1 px-4 py-6 sm:px-6">
+          <TopBar userName={userName} userImage={userImage} unread={0} mobileNav={mobileNav} />
+          <main id="main" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
             <TrialGate plan={plan.name} />
           </main>
         </div>
@@ -53,18 +79,18 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-dvh">
-      <AppSidebar
-        plan={plan.name}
-        orgName={org?.name ?? "Workspace"}
-        trial={{ daysRemaining: view.daysRemaining, expired: false }}
-      />
+      {skipLink}
+      {rail}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-end gap-3 border-b border-border bg-bg/80 px-4 backdrop-blur sm:px-6">
-          <UserMenu userName={session.user.name ?? session.user.email ?? "Account"} />
-        </header>
+        <TopBar userName={userName} userImage={userImage} unread={subnav.unread} mobileNav={mobileNav} showAi />
         <TrialBanner view={view} />
-        <main className="flex-1 px-4 py-6 sm:px-6">{children}</main>
+        <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border px-4 py-3 text-xs text-muted sm:px-6 lg:px-8">
+          <span className="font-medium text-text-2">BizMemory</span>
+          <span>One connected memory for your whole business.</span>
+        </footer>
       </div>
+      <CommandPalette />
     </div>
   );
 }

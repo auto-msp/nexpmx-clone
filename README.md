@@ -36,23 +36,33 @@ curl localhost:3000/api/health
 
 | Area | Status |
 | --- | --- |
-| Marketing site (home, client-portal solution, pricing, intelligence, legal) | ✅ |
+| Marketing site (home, client-portal solution, pricing, intelligence, help, legal) | ✅ |
 | Google OAuth sign-in (Auth.js v5, DB sessions), login-redirect gate | ✅ |
-| Dashboard (stats, credits, recent decisions) | ✅ |
+| App shell: module rail, per-module subnav, Ctrl+K palette, AI credits meter, focus timer | ✅ |
+| Home command center (attention queue, revenue snapshot, AI team status) | ✅ |
 | Clients CRUD + plan entitlement caps | ✅ |
 | Projects + 3-column task board | ✅ |
+| Proposals pipeline (Draft→Signed) + invoice conversion | ✅ |
 | Invoices with explicit status state machine | ✅ |
+| Comms log (email/call/meeting/note) | ✅ |
 | Decisions log | ✅ |
+| Business Memory: facts, what-we-know, questions, paste import | ✅ |
+| Sheets: A1–Z100 grid editor, formulas, CSV export | ✅ |
+| AI team (5 virtual employees) + skills library + automations runner | ✅ |
 | AI Assistant (grounded, provider-agnostic adapter, credit metering) | ✅ |
+| CIO executive brief + Reports | ✅ |
+| Settings: team directory, plan & usage, company & GST, notifications, data & privacy, audit log | ✅ |
 | Token-authenticated read-only Client Portal | ✅ |
 | REST API v1 with hashed API keys | ✅ |
 | RBAC matrix, audit log, security headers, rate limiting | ✅ |
 | Tests (unit, integration, Playwright E2E), typecheck, production build | ✅ |
 | Billing (Razorpay orders + signed webhooks) + self-serve /billing checkout | ✅ |
+| Transactional email (Resend; null provider without key) — invites + automation alerts | ✅ |
+| Invoice GST (CGST/SGST/IGST split, rate + place of supply) + "Pay via UPI" portal links | ✅ |
 
-Not yet implemented: automations runner, multi-org switching, live
-processor keys/KYC, counsel-reviewed legal pages. See
-`docs/KNOWN_LIMITATIONS.md`.
+Not yet implemented: async automation queue, GSTIN checksum validation &
+filing exports, multi-org switching, live processor keys/KYC,
+counsel-reviewed legal pages. See `docs/KNOWN_LIMITATIONS.md`.
 
 ## Documentation
 
@@ -69,6 +79,7 @@ processor keys/KYC, counsel-reviewed legal pages. See
 | [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Tokens, components |
 | [API.md](docs/API.md) | Endpoint reference |
 | [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Oracle Cloud Ubuntu + Caddy + systemd |
+| [DOMAIN_SETUP.md](docs/DOMAIN_SETUP.md) | Subdomain (app.nexpmx.com), DNS, TLS, OAuth/Resend/webhook wiring |
 | [OBSERVABILITY.md](docs/OBSERVABILITY.md) | Health, audit, logging |
 | [TESTING.md](docs/TESTING.md) | Test strategy |
 | [KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) | What is missing and why |

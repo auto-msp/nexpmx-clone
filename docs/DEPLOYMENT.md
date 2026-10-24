@@ -146,6 +146,49 @@ sudo systemctl restart bizmemory
 | staging | separate DB on VM | real, separate | recommended before prod |
 | prod | `/opt/bizmemory` DB | real | `OWNER_EMAILS` must list real owners |
 
+## Deploying to a shared host (2026-10-02, verified on perceptor)
+
+The single-VM layout above assumes the machine is dedicated to BizMemory. On a
+host already running other services, several defaults are wrong and were hit
+in practice:
+
+- **Port 3000 was already taken.** Pick a free port (3100 was used) and set
+  `Environment=PORT=` in the unit. `infrastructure/bizmemory.service` reads
+  3000 as an overridable default.
+- **Caddy may be containerised** and already reverse-proxying other domains
+  from a hand-maintained file. `provision.sh` now refuses to overwrite an
+  existing `/etc/caddy/Caddyfile`. Add a site block by hand instead.
+- **A containerised Caddy cannot reach `127.0.0.1:<port>`** — that is the
+  container's own loopback. Use the Docker bridge gateway address (what
+  `docker network inspect <net> -f '{{.Gateway}}'` reports, e.g.
+  `172.18.0.1`), matching the other vhosts.
+- **ufw must allow that port from the bridge subnet.** Traffic from the
+  container arrives on the bridge address, not loopback, and ufw's default is
+  `deny (incoming)`:
+  ```bash
+  sudo ufw allow from 172.18.0.0/16 to 172.18.0.1 port 3100 proto tcp
+  ```
+- **Single-file bind mounts cache the inode.** `sed -i` replaces the file, so
+  the container keeps serving the old contents and `caddy reload` reports
+  `config is unchanged` — a silent no-op. Recreate the container to pick it up:
+  ```bash
+  cd /root/n8n-docker-caddy && docker compose up -d --force-recreate caddy
+  ```
+- **Proxied DNS breaks ACME.** With a Cloudflare (or any) proxy on the record,
+  the HTTP-01 challenge never reaches the origin and the host cannot obtain a
+  certificate — Cloudflare returns `525 SSL_HANDSHAKE_FAILED`. Either set the
+  record to DNS-only so Caddy can issue normally, or supply a Cloudflare
+  Origin CA certificate covering the hostname (precedent: the
+  `voice.automsp.store` vhost). ACME and a proxy are mutually exclusive here.
+- **Don't use bare `SELECT 1` as a health gate.** `/api/health` also asserts
+  `Organization` and `User` exist, so a database with no applied schema fails
+  the gate instead of reporting `ok`.
+
+Verified live at `https://app.coreitx.us.kg` on perceptor (132.145.133.39):
+Let's Encrypt cert issued, `/api/health` → `{"status":"ok","db":true}`,
+`/dashboard` → 307 to `/login`, and the seven pre-existing vhosts still
+serving after the change.
+
 ## Backups
 
 Documents uploaded to the Document Hub live under `DOCUMENT_STORAGE_DIR`

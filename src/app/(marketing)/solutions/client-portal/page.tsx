@@ -31,7 +31,7 @@ const STEPS = [
 export default function ClientPortalPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <p className="text-sm font-medium uppercase tracking-widest text-brand">Client Portal</p>
+      <p className="text-sm font-medium text-brand">Client Portal</p>
       <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
         One branded home for every client relationship
       </h1>

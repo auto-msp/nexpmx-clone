@@ -22,11 +22,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      // Google verifies e-mail ownership, so linking by e-mail is safe here.
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
     async signIn({ user }) {
       if (!user?.email) return false;
+      // Optional allowlist: when AUTH_ALLOWED_EMAILS is set, only those e-mails may sign in.
+      const allowed = (process.env.AUTH_ALLOWED_EMAILS ?? "")
+        .split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+      if (allowed.length > 0 && !allowed.includes(user.email.toLowerCase())) return false;
       // Bootstrap tenancy on first login: default org + OWNER if allowlisted.
       await ensureDefaultOrgForUser(user.email, user.name ?? null);
       return true;
