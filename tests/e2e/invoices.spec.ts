@@ -20,7 +20,9 @@ import {
 
 let org: TestOrg;
 let clientId: string;
-const number = `E2E-INV-${Date.now().toString(36).toUpperCase()}`;
+// Invoice numbers are assigned by the server (INV-YYYY-NNNN, per-org sequence),
+// so the number is read back after the first test creates the invoice.
+let number = "";
 
 test.beforeAll(async () => {
   org = await seedPersona("invoices", { state: "TRIALING", daysToTrialEnd: 10 });
@@ -38,30 +40,44 @@ async function gotoInvoices(page: import("@playwright/test").Page) {
 }
 
 test("create draft invoice through the form", async ({ page }) => {
-  await gotoInvoices(page);
+  await loginAs(page, org);
+  await page.goto("/invoices/new");
+  await expect(page.getByRole("heading", { name: "New invoice" })).toBeVisible();
 
-  await page.getByLabel("Client *").selectOption({ label: "E2E Invoice Client" });
-  await page.getByLabel("Number *").fill(number);
-  await page.getByLabel("Amount (INR) *").fill("15000.50");
-  await page.getByRole("button", { name: "Create draft" }).click();
+  // Number is assigned automatically; the form takes a client and line items.
+  await page.locator('select[name="clientId"]').selectOption({ label: "E2E Invoice Client" });
+  await page.getByLabel("Description 1").fill("Design work");
+  await page.getByLabel("Rate in rupees 1").fill("15000.50");
+  await page.getByLabel("GST rate 1").selectOption({ label: "0%" });
+  await page.getByRole("button", { name: "Save as draft" }).click();
 
+  // The action redirects to the new invoice's detail page.
+  await expect(page).toHaveURL(/\/invoices\/(?!new)[a-z0-9]+$/);
+  const created = await prisma.invoice.findFirstOrThrow({ where: { orgId: org.orgId, clientId } });
+  number = created.number;
+  expect(number).toMatch(/^INV-\d{4}-\d{4}$/);
+  expect(created.status).toBe("DRAFT");
+
+  await page.goto("/invoices");
   const row = page.getByRole("row", { name: new RegExp(number) });
   await expect(row).toBeVisible();
-  await expect(row.getByText("DRAFT")).toBeVisible();
+  await expect(row.getByText("Draft", { exact: true })).toBeVisible();
   await expect(row.getByText("₹15,001")).toBeVisible(); // formatInr rounds to whole INR
 });
 
 test("DRAFT → SENT → PAID transitions render from the UI", async ({ page }) => {
+  // "Mark paid" asks for confirmation through a browser dialog.
+  page.on("dialog", (d) => d.accept());
   await gotoInvoices(page);
   const row = page.getByRole("row", { name: new RegExp(number) });
 
-  await row.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("row", { name: new RegExp(number) }).getByText("SENT")).toBeVisible();
+  await row.getByRole("button", { name: "Mark sent" }).click();
+  await expect(page.getByRole("row", { name: new RegExp(number) }).getByText("Sent", { exact: true })).toBeVisible();
 
   await page.getByRole("row", { name: new RegExp(number) })
     .getByRole("button", { name: "Mark paid" })
     .click();
-  await expect(page.getByRole("row", { name: new RegExp(number) }).getByText("PAID")).toBeVisible();
+  await expect(page.getByRole("row", { name: new RegExp(number) }).getByText("Paid", { exact: true })).toBeVisible();
 
   // Terminal state: no further action buttons are offered.
   await expect(
@@ -70,19 +86,32 @@ test("DRAFT → SENT → PAID transitions render from the UI", async ({ page }) 
 });
 
 test("duplicate invoice number is rejected", async ({ page }) => {
+  // The rebuilt form no longer takes a typed number (the server assigns the next
+  // INV-YYYY-NNNN), so a duplicate can only be attempted against the data layer.
+  // The org-scoped unique constraint must still reject it, and the count must
+  // stay at exactly 1.
   await gotoInvoices(page);
-  await page.getByLabel("Client *").selectOption({ label: "E2E Invoice Client" });
-  await page.getByLabel("Number *").fill(number); // already used by the paid invoice
-  await page.getByLabel("Amount (INR) *").fill("100");
-  await page.getByRole("button", { name: "Create draft" }).click();
+  await expect(
+    prisma.invoice.create({
+      data: { orgId: org.orgId, clientId, number, amountMinor: 10_000, status: "DRAFT" },
+    }),
+  ).rejects.toThrow(/Unique constraint/);
 
-  // Server action throws; Next dev/prod surfaces the error page. The row
-  // count for this number must stay at exactly 1.
-  await page.waitForTimeout(1_000);
   const count = await prisma.invoice.count({
     where: { orgId: org.orgId, number },
   });
   expect(count).toBe(1);
+
+  // And a second invoice made through the UI gets a different, next number.
+  await page.goto("/invoices/new");
+  await page.locator('select[name="clientId"]').selectOption({ label: "E2E Invoice Client" });
+  await page.getByLabel("Description 1").fill("Second job");
+  await page.getByLabel("Rate in rupees 1").fill("100");
+  await page.getByRole("button", { name: "Save as draft" }).click();
+  await expect(page).toHaveURL(/\/invoices\/(?!new)[a-z0-9]+$/);
+  const all = await prisma.invoice.findMany({ where: { orgId: org.orgId }, select: { number: true } });
+  expect(all).toHaveLength(2);
+  expect(new Set(all.map((i) => i.number)).size).toBe(2);
 });
 
 test("invoice is org-scoped: another org cannot see it", async ({ page }) => {
